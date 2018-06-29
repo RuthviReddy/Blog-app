@@ -1,0 +1,73 @@
+<html>
+    <head>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    	<title> Blog Posts </title>
+    	<style>
+    		.dropdown {
+		    position: relative;
+		    display: inline-block;
+			}
+
+			.dropdown-content {
+			    display: none;
+			    position: absolute;
+			    background-color: #FEF5E7;
+			    min-width: 160px;
+			    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+			    padding: 12px 16px;
+			    z-index: 1;
+			}
+
+			.dropdown:hover .dropdown-content {
+			    display: block;
+			}
+    	</style>
+    </head>
+    
+    <body style="background-color: #F9EEFF; font-family: verdana;">
+
+    <p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>
+Logout</a> </p>
+
+        <h1 style = "font-size: 200%; text-align: center;">Your posts</h1>
+
+        <p style="font-size: 90%;"><a href="/home">Publish a post!</a> </p>
+        <p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
+
+        <div class="dropdown" style="float: right;">
+  			<span>Sort <i class="fa fa-sort" aria-hidden="true"></i>&ensp; &ensp;&ensp; &ensp;&ensp; &ensp;</span>
+  				<div class="dropdown-content">
+    				<p><a href = '/new'>Latest first</a></p>
+    				<p><a href = '/old'>Oldest first</a></p>
+  				</div>
+		</div>
+         <br/><br/>
+
+        <% for(let i = 0; i < posts.length; i++) { %>
+        
+            <% var postId = posts[i]._id %>
+            <% var editLink = '/editPost/'+postId %>
+            <% var deleteLink = '/deletePost/'+postId %>
+            <% var viewPost = '/viewPost/'+postId %>
+            <% var createdAt = moment(posts[i].createdAt).format('DD-MM-YYYY HH:MM') %>
+            <% var updatedAt = moment(posts[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
+            
+            <article style= "text-align: center;">
+            	<p style = "font-size: 170%;"><%= posts[i].title %> </p>
+                <p style = "font-size: 130%;"><%= posts[i].blogpost.substring(0,200) %></p>
+
+                <p style = "font-size: 90%"> Created on <%= createdAt %></p>
+                
+                <span><a href = <%= viewPost %> ><i title = "View entire post" class="fa fa-eye" aria-hidden="true" style="color: blue;"></i></a> &ensp; </span>
+                <span><a href= <%= deleteLink %> ><i 
+               title = "Delete Post" class="fa fa-trash" aria-hidden="true"></i></a> &ensp;</span>
+                <span><a href= <%= editLink %> > <i title = "Edit post" class="fa fa-pencil" aria-hidden="true" style = "color: blue;"></i> </a></span>
+
+
+                <p>-----------------------</p>
+            </article>
+        <% } %>
+
+    </body>
+</html>

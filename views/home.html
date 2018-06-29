@@ -1,0 +1,55 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<style>
+			textarea {
+			    display: block;
+			    margin-left: auto;
+			    margin-right: auto;
+			}
+
+			.wrapper {
+				text-align: center;
+			}
+
+			input[type=submit] {
+     		width: 19em;
+     		height: 5em;
+     		font-size: 100%;
+     		}
+
+     		input[type=text] {
+     		width: 30em;
+     		height: 5em;
+     		
+     	}
+
+		</style>
+		<title>Home</title>
+	</head>
+
+	<body style="background-color: #F9EEFF; font-family: verdana;">
+
+		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> &ensp;</p> <br/>
+		<p style="font-size: 100%;">&ensp;<a href="/posts">Your posts!</a> </p>
+		<p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
+		
+		<p style = "font-size: 200%; text-align: center;"> Hello <%= username %></p>
+		
+		 <br/> <br/>
+		
+		<form action = '/publishPost' method='post' enctype="application/json">
+
+			<p name="title" style="text-align: center; font-size: 175%;">Title  <input name="title" id="title" type="text" class="title" /> </p>
+
+			<textarea name="blogpost" rows="29" cols="100" style="resize: both;
+	    overflow: scroll; font-size: 300%%; font-family: verdana;"></textarea>
+	    	<br/><br/><br/>
+	    	<div class = "wrapper">
+	    		<input type="submit" value="Publish Post">
+	    	</div>
+	    </form>
+
+
+	</body>
+</html>

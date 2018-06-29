@@ -1,0 +1,62 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<style>
+			textarea {
+			    display: block;
+			    margin-left: auto;
+			    margin-right: auto;
+			}
+
+			.wrapper {
+				text-align: center;
+			}
+
+			input[type=submit] {
+     		width: 19em;
+     		height: 5em;
+     		font-size: 100%;
+     		}
+
+     		input[type=text] {
+     		width: 30em;
+     		height: 5em;
+     		}
+
+     		
+		</style>
+		<title>Edit Post</title>
+	</head>
+
+	<body style="background-color: #F9EEFF; font-family: verdana;">
+
+		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
+		
+		<p style = "font-size: 200%;"> Edit your post</p>
+		
+		<p><a href="/posts">Your posts!</a> </p>
+		<br/> <br/> <br/><br/>
+		
+		<form action = '/edit' method='post' enctype="application/json">
+			<div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" class="form-control" name="title" value="<%= posts[0].title %>" style="text-align: center; font-size: 90%;">
+            </div>
+			<br/> <br/>
+			<div class="form-group">
+                <label for="blogpost"></label>
+                <textarea rows="29" cols="100" name="blogpost" id="blogpost" class="form-control" style="resize: both;
+	    overflow: scroll; font-size: 300%%; font-family: verdana;"><%= posts[0].blogpost %></textarea>
+            </div>
+            <input type="hidden" name="_id" value="<%= posts[0]._id %>">
+
+
+			<br/><br/><br/>
+	    	<div class = "wrapper">
+	    		<input type="submit" value="Update">
+	    	</div>
+	    </form>
+
+
+	</body>
+</html>

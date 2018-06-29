@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<style>
+			.wrapper {
+     		text-align: center;
+     		}
+
+     		input[type=submit] {
+     		width: 15em;
+     		height: 27em;
+     		font-size: 100%;
+     		}
+
+
+     		.a {
+     			text-align: justify-all ;
+     		}
+		</style>
+		<title>Blog</title>
+	</head>
+
+	<body style="background-color: lightcyan; font-family: verdana;">
+		<p style="font-weight: bold; font-size: 500%;">blog</p>
+
+		<form action="/signin" method="post" enctype="application/json" style="float:right; border-style:solid;  border-width: thin; width: auto; padding-right: 5%; padding-left: 5%; padding-bottom: 3%; margin:auto;">
+
+			<p style="text-align: justify; font-size: 175%;">Username  <input name="username" id="username" type="text" class="username" /> </p>
+
+			<p style="text-align: center; font-size: 175%">Password  <input name="password" id="password" type="password" class="password" /> </p>
+
+			<div class="wrapper">
+			<input type="checkbox" name="rememberme"/>Remember Me
+			</div> <br/>
+
+			<div class="wrapper">
+			<input type="submit" value="Sign In"/>
+			</div>
+
+		</form> <br/>
+		<div class = "a">
+			<p> <a href="/signup">Create an account! </a> </p> 
+			<p> <a href="/facebook"> Sign in through Facebook! </a></p> 
+			<p> <a href="/twitter"> Sign in through Twitter! </a></p>
+			<p> <a href="/google"> Sign in through Google!</a></p>
+		</div>
+
+	</body>
+</html>

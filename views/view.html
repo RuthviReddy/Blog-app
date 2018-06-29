@@ -1,0 +1,34 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		
+		<title id="title" name="title"><%= posts[0].title %></title>
+	</head>
+
+	<body style="background-color: #F9EEFF; font-family: verdana;">
+
+		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
+		<p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
+		<% var createdAt = moment(posts[0].createdAt).format('DD-MM-YYYY HH:MM') %>
+        <% var updatedAt = moment(posts[0].updatedAt).format('DD-MM-YYYY HH:MM') %>
+		<h1 id="heading" name="heading" style="text-align: center; font-size: 200%;"><%= posts[0].title %></h1>
+		<p style = "font-size: 90%; text-align: center;"> Created on <%= createdAt %></p>
+        
+		<p><a href="/posts">Your posts!</a> </p>
+		<br/> <br/> <br/><br/>
+		
+		<label for="blogpost"></label>
+                <p  name="blogpost" id="blogpost" style="
+	    overflow: scroll; font-size: 300%%; font-family: verdana; text-align: center;"><%= posts[0].blogpost %></p>
+		
+		
+            <input type="hidden" name="_id" value="<%= posts[0]._id %>">
+
+
+			<br/><br/><br/>
+	    	<p><a href='/posts'>Go back</a></p>
+	    
+
+
+	</body>
+</html>

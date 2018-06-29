@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<style>
+			textarea {
+			    display: block;
+			    margin-left: auto;
+			    margin-right: auto;
+			}
+
+			.wrapper {
+				text-align: center;
+			}
+
+			input[type=submit] {
+     		width: 19em;
+     		height: 45em;
+     		font-size: 100%;
+     		}
+
+     		input[type=text] {
+     		width: 30em;
+     		height: 5em;
+     		
+     	}
+
+		</style>
+		<title>Home</title>
+	</head>
+
+	<body>
+
+		<p style="float:right;"><a href="/logout">Logout</a> </p>
+		<br/> <br/> <br/><br/><br/><br/>
+		<% for(let i = 0; i < posts.length; i++) { %>
+            <article>
+                <p><%= posts[i].body %></p>
+            </article>
+        <% } %>
+		<form action = '/publishPost' method='post' enctype="application/json">
+
+			<p style="text-align: center; font-size: 175%;">Title  <input name="title" id="title" type="text" class="title" /> </p>
+
+			<textarea name="body" rows="29" cols="100" style="resize: both;
+	    overflow: scroll; font-size: 300%%; font-family: verdana;"></textarea>
+	    	<br/><br/><br/>
+	    	<div class = "wrapper">
+	    		<input type="submit" value="Publish Post">
+	    	</div>
+	    </form>
+
+
+	</body>
+</html>

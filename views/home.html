@@ -1,6 +1,28 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.5.1/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.5.1/css/froala_style.min.css" rel="stylesheet" type="text/css" />
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.5.1//js/froala_editor.pkgd.min.js"></script>
+
+		<style>
+			div.fr-box.fr-basic.fr-top {
+				margin-left: 150px;
+			}
+		</style>
+
+		<script>
+		  $(function() {
+		    $('#myEditor').froalaEditor({toolbarInline: false,
+    height: 400, width:700})
+		  });
+		</script>
+
 		<style>
 			textarea {
 			    display: block;
@@ -31,25 +53,32 @@
 	<body style="background-color: #F9EEFF; font-family: verdana;">
 
 		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> &ensp;</p> <br/>
-		<p style="font-size: 100%;">&ensp;<a href="/posts">Your posts!</a> </p>
+		<p style="font-size: 100%;">&ensp;<a href="/yourProfile">Your profile!</a> </p>
 		<p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
 		
 		<p style = "font-size: 200%; text-align: center;"> Hello <%= username %></p>
 		
 		 <br/> <br/>
 		
-		<form action = '/publishPost' method='post' enctype="application/json">
+		<form action = "/publishPost" method='post' enctype="application/json">
 
 			<p name="title" style="text-align: center; font-size: 175%;">Title  <input name="title" id="title" type="text" class="title" /> </p>
 
-			<textarea name="blogpost" rows="29" cols="100" style="resize: both;
-	    overflow: scroll; font-size: 300%%; font-family: verdana;"></textarea>
+			<!-- name="blogpost" rows="29" cols="100" style="resize: both;
+			    overflow: scroll; font-size: 300%%; font-family: verdana;" -->
+
+			
+				<textarea id="myEditor" name = "editor_content">
+
+				
+				    
+				</textarea>
+	    	
 	    	<br/><br/><br/>
 	    	<div class = "wrapper">
-	    		<input type="submit" value="Publish Post">
+	    		<input id = "submit" type="submit" value="Publish Post"> 
 	    	</div>
 	    </form>
-
-
+	    
 	</body>
 </html>

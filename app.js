@@ -109,6 +109,8 @@ passport.use(new FacebookStrategy({
   },
   function(accessToken, refreshToken, profile, done) {
     
+    //console.log("The profile is " + profile);
+    //console.log("The username of profile is "+ profile.displayName);
     User.findOne({
       'facbook.id': profile.id
     }, function(err, user) {
@@ -117,7 +119,7 @@ passport.use(new FacebookStrategy({
       }
       if(!user) {
         user = new User ({
-          username: profile.username,
+          username: profile.displayName,
           provider: 'facebook',
           facebook: profile._json
         });
@@ -168,6 +170,9 @@ passport.use(new GoogleStrategy({
   callbackURL: "http://localhost:1111/google/callback"
 },
   function(accessToken, refreshToken, profile, done) {
+    //console.log("Profile username is " + profile.displayName);
+    //sess = req.session;
+    //sess.username = profile.displayName;
     User.findOne({
       'google.id' : profile.id
     }, function(err, user) {
@@ -176,11 +181,11 @@ passport.use(new GoogleStrategy({
       }
       if(!user) {
         user = new User ({
-          username: profile.username,
+          username: profile.displayName,
           provider: 'google',
           google: profile._json
         });
-        console.log(profile.username);
+        //console.log(profile.displayName);
         user.save(function (err) {
           if(err) console.log(err);
           return done(err, user);
@@ -235,9 +240,6 @@ var postSchema = new mongoose.Schema({
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
 
-
-
-
 //routes
 //adding the homepage route
 /*app.get('/', ensureAuthenticated, function (req, res, next) {	
@@ -281,7 +283,7 @@ app.get('/signup', function (req, res, next) {
 
 //login with Passport
 app.post('/signin', passport.authenticate("local", {
-  successRedirect: '/home',
+  successRedirect: '/feed',
   failureRedirect: '/',
   failureFlash: true
 })
@@ -307,25 +309,25 @@ app.post('/signup', (req, res, next) => {
     });
 });
 
-app.get('/facebook', passport.authenticate('facebook'));
+app.get('/facebook', passport.authenticate('facebook', {scope: 'public_profile,email'}));
 
 app.get('/facebook/callback', passport.authenticate('facebook', {failureRedirect: '/signin'}),
   function(req,res) {
-    res.redirect('/home');
+    res.redirect('/feed');
   });
 
 app.get('/twitter', passport.authenticate('twitter'));
 
 app.get('/twitter/callback', passport.authenticate('twitter', {failureRedirect: '/signin'}),
   function(req, res) {
-    res.redirect('/home');
+    res.redirect('/feed');
   });
 
 app.get('/google', passport.authenticate('google', {scope: 'https://www.googleapis.com/auth/plus.me https://www.google.com/m8/feeds https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'}));
 
 app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/signin'}),
   function(req, res) {
-    res.redirect('/home');
+    res.redirect('/feed');
   });
 
 /*app.post('/signup', function (req,res,next) {
@@ -351,8 +353,10 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 });*/
 app.get('/feed', ensureAuthenticated, (req, res) => {
   //console.log(req.username);
+  sess = req.session;
+  sess.username = req.user.username;
   Post.find({}, (err,posts) => {
-    res.render('profile', {posts: posts})
+    res.render('feed', {posts: posts, username: sess.username});
   });
 });
 
@@ -362,28 +366,44 @@ app.get("/home", ensureAuthenticated, (req, res) => {
       //console.log(req.user.username);
       sess = req.session;
       sess.username = req.user.username;
-      //console.log(sess.username);
+      //console.log("The session username is" + sess.username);
       res.render('home', {username: sess.username});
       
 });
 
 
-app.get("/posts", ensureAuthenticated, (req, res) => {
+app.get("/yourProfile", ensureAuthenticated, (req, res) => {
   //console.log(req.username);
   Post.find({username: sess.username}, (err,posts) => {
-    res.render('profile', {posts: posts})
+    res.render('yourProfile', {posts: posts})
   });
 });
 
 app.get("/new", function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'descending'}).exec(function(err, posts) {
-    res.render('profile', {posts: posts})
+    res.render('yourProfile', {posts: posts})
   });
 });
 
 app.get("/old", function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'ascending'}).exec(function(err, posts) {
-    res.render('profile', {posts: posts})
+    res.render('yourProfile', {posts: posts})
+  });
+});
+
+app.get("/newFeed", function(req, res) {
+      sess = req.session;
+      sess.username = req.user.username;
+  Post.find().sort({createdAt : 'descending'}).exec(function(err, posts) {
+    res.render('feed', {posts: posts, username: sess.username})
+  });
+});
+
+app.get("/oldFeed", function(req, res) {
+      sess = req.session;
+      sess.username = req.user.username;
+  Post.find().sort({createdAt : 'ascending'}).exec(function(err, posts) {
+    res.render('feed', {posts: posts, username: sess.username})
   });
 });
 
@@ -408,22 +428,26 @@ app.get('/logout', function (req, res, next) {
 
 //ejs route
 app.post('/publishPost', ensureAuthenticated, (req, res) => {
+      
+      //console.log("inside publish post");
+      //console.log(req.body.editor_content);
       var postData = {
       username: sess.username,
       title: req.body.title,
-      blogpost: req.body.blogpost,
+      blogpost: req.body.editor_content,
     }
 
     Post.create(postData, function(err, post) {
       if(err) {
         return next(err);
       } else {
-        return res.redirect('/posts');
+        return res.redirect('/yourProfile');
       }
         
     });
 
 });
+
 
 app.get('/deletePost/:id', function(req,res) {
   //console.log(req.params.id);
@@ -433,7 +457,7 @@ app.get('/deletePost/:id', function(req,res) {
   var o_id = ObjectId(id);
   db.collection('posts').findAndRemove({_id:o_id} , function(err) {
     if(err) { res.send(err); }
-    res.redirect('/posts');
+    res.redirect('/yourProfile');
     console.log("Post deleted successfully!");
   });
 });
@@ -451,6 +475,18 @@ app.get('/editPost/:id', function(req, res) {
   //console.log(req.params.id);
 });
 
+app.get('/viewProfile/:Author', function(req,res) {
+  //var id = req.params.;
+  //var o_id = ObjectId(id);
+  var name = req.params.Author;
+  //console.log(req.params.Author);
+  db.collection('posts').find({username : name}).toArray((err, result) => {
+    if(err) return console.log(err);
+
+    res.render('profile',{posts:result, username: req.params.Author});
+  })
+})
+
 app.post('/edit',(req, res) => {
  db.collection('posts').update ({ _id: ObjectId(req.body._id) }, {$set: {
     title: req.body.title,
@@ -462,7 +498,7 @@ app.post('/edit',(req, res) => {
     } else {
      console.log("Post Updated successfully");
      Post.find({username: sess.username}, (err,posts) => {
-    res.render('profile', {posts: posts})
+    res.render('yourProfile', {posts: posts})
   });
  }
 })});

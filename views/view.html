@@ -5,28 +5,35 @@
 		<title id="title" name="title"><%= posts[0].title %></title>
 	</head>
 
-	<body style="background-color: #F9EEFF; font-family: verdana;">
+	<body style="background-color: #F9EEFF; font-family: verdana; text-align: center;">
+
+		<% var postId = posts[0]._id %>
+		<% var postAuthor = posts[0].username %>
+		<% var viewProfile = '/viewProfile/'+postId %>
+		<% var viewProfile = '/viewProfile/'+postAuthor %>
 
 		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
-		<p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
+
+		<p style="font-size: 90%; float:left;"><a href="/feed">Visit your feed!</a> </p><br/>
+		<p style="text-align: left;"><a href="/yourProfile">Your posts!</a> </p>
+
 		<% var createdAt = moment(posts[0].createdAt).format('DD-MM-YYYY HH:MM') %>
         <% var updatedAt = moment(posts[0].updatedAt).format('DD-MM-YYYY HH:MM') %>
+
 		<h1 id="heading" name="heading" style="text-align: center; font-size: 200%;"><%= posts[0].title %></h1>
+		<p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= posts[0].username %> </a></p>
 		<p style = "font-size: 90%; text-align: center;"> Created on <%= createdAt %></p>
         
-		<p><a href="/posts">Your posts!</a> </p>
+		
 		<br/> <br/> <br/><br/>
+		<p style="text-align: center;"> <%- posts[0].blogpost %> </p>
 		
-		<label for="blogpost"></label>
-                <p  name="blogpost" id="blogpost" style="
-	    overflow: scroll; font-size: 300%%; font-family: verdana; text-align: center;"><%= posts[0].blogpost %></p>
-		
-		
+		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
             <input type="hidden" name="_id" value="<%= posts[0]._id %>">
 
 
 			<br/><br/><br/>
-	    	<p><a href='/posts'>Go back</a></p>
+	    	
 	    
 
 

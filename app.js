@@ -18,6 +18,9 @@ exports.index = function(req, res) {
     res.render('profile', { moment: moment });
 }
 
+// var multer = require('multer');
+// var fs = require('fs');
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
@@ -111,8 +114,10 @@ passport.use(new FacebookStrategy({
     
     //console.log("The profile is " + profile);
     //console.log("The username of profile is "+ profile.displayName);
+    console.log(profile._json);
     User.findOne({
-      'facbook.id': profile.id
+      username: profile.displayName
+      //'facebook.id': profile.id
     }, function(err, user) {
       if(err) {
         return done(err);
@@ -142,8 +147,10 @@ passport.use(new TwitterStrategy({
   callbackURL: "http://127.0.0.1:1111/twitter/callback"
 },
   function(accessToken, refreshToken, profile, done) {
+    //console.log(profile._json);
     User.findOne({
-      'twitter.id' : profile.id
+      username: profile.username
+      //'twitter.id' : profile.id
     }, function(err, user) {
       if(err) {
         return done(err);
@@ -152,7 +159,8 @@ passport.use(new TwitterStrategy({
         user = new User ({
           username: profile.username,
           provider: 'twitter',
-          twitter: profile._json
+          twitter: profile._json,
+          image: profile_image_url_https
         });
         user.save(function (err) {
           if(err) console.log(err);
@@ -173,17 +181,20 @@ passport.use(new GoogleStrategy({
     //console.log("Profile username is " + profile.displayName);
     //sess = req.session;
     //sess.username = profile.displayName;
+    console.log(profile._json);
     User.findOne({
-      'google.id' : profile.id
+      username: profile.familyName
+      //'google.id' : profile.id
     }, function(err, user) {
       if(err) {
         return done(err);
       }
       if(!user) {
         user = new User ({
-          username: profile.displayName,
+          username: profile.familyName,
           provider: 'google',
-          google: profile._json
+          google: profile._json,
+          image: image.url
         });
         //console.log(profile.displayName);
         user.save(function (err) {
@@ -214,6 +225,7 @@ var UserSchema = new mongoose.Schema({
 	email: String,
 	username: String,
 	passwordHash: String,
+  image: String
   //blogposts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
 
 });
@@ -233,12 +245,32 @@ var postSchema = new mongoose.Schema({
   username: String,//{type: Schema.Types.ObjectId, ref: 'User'},
   title: String,
   blogpost: String,
+  user_image: String
   //time : { type : Date, default: Date.now }
 
 });
 
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
+
+//defining schema for Imgage-uploads using Multer
+//data type Buffer allows us to store our image as data in the form of arrays
+// var ItemSchema = new mongoose.Schema({
+//   img:
+//       { data: Buffer, contentType: String }
+//     });
+
+// var Item = mongoose.model('Item', ItemSchema);
+
+//defining the image upload path for multer
+/*app.use(multer({ dest: './uploads/',
+ rename: function (fieldname, filename) {
+   return filename;
+ },
+}));*/
+// var uploads = multer({
+//   dest: 'uploads/'
+// });
 
 //routes
 //adding the homepage route
@@ -362,7 +394,7 @@ app.get('/feed', ensureAuthenticated, (req, res) => {
 
 
 //ejs route
-app.get("/home", ensureAuthenticated, (req, res) => {
+app.get('/home', ensureAuthenticated, (req, res) => {
       //console.log(req.user.username);
       sess = req.session;
       sess.username = req.user.username;
@@ -372,26 +404,46 @@ app.get("/home", ensureAuthenticated, (req, res) => {
 });
 
 
-app.get("/yourProfile", ensureAuthenticated, (req, res) => {
+app.get('/yourProfile', ensureAuthenticated, (req, res) => {
   //console.log(req.username);
-  Post.find({username: sess.username}, (err,posts) => {
-    res.render('yourProfile', {posts: posts})
+  var img;
+  User.findOne({username: sess.username}, function(err, user) {
+      //console.log(user);
+      img = user.image;
+      //console.log(img);
+
+      Post.find({username: sess.username}, (err,posts) => {
+        var postObj = {};
+        postObj.image = img;
+        postObj.posts = posts;
+        //console.log(postObj.image);
+        res.render('yourProfile', {data: postObj})
+      });
   });
+  //console.log(img);
+
+  // Post.find({username: sess.username}, (err,posts) => {
+  //   var postObj = {};
+  //   postObj.image = img;
+  //   postObj.posts = posts;
+  //   console.log(postObj.image);
+  //   res.render('yourProfile', {data: postObj})
+  // });
 });
 
-app.get("/new", function(req, res) {
+app.get('/new', function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'descending'}).exec(function(err, posts) {
     res.render('yourProfile', {posts: posts})
   });
 });
 
-app.get("/old", function(req, res) {
+app.get('/old', function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'ascending'}).exec(function(err, posts) {
     res.render('yourProfile', {posts: posts})
   });
 });
 
-app.get("/newFeed", function(req, res) {
+app.get('/newFeed', function(req, res) {
       sess = req.session;
       sess.username = req.user.username;
   Post.find().sort({createdAt : 'descending'}).exec(function(err, posts) {
@@ -399,7 +451,7 @@ app.get("/newFeed", function(req, res) {
   });
 });
 
-app.get("/oldFeed", function(req, res) {
+app.get('/oldFeed', function(req, res) {
       sess = req.session;
       sess.username = req.user.username;
   Post.find().sort({createdAt : 'ascending'}).exec(function(err, posts) {
@@ -488,6 +540,7 @@ app.get('/viewProfile/:Author', function(req,res) {
 })
 
 app.post('/edit',(req, res) => {
+  //console.log(req.body);
  db.collection('posts').update ({ _id: ObjectId(req.body._id) }, {$set: {
     title: req.body.title,
     blogpost: req.body.blogpost
@@ -507,14 +560,37 @@ app.get('/viewPost/:id', function(req, res) {
   var id = req.params.id;
   //console.log(id);
   var o_id = ObjectId(id);
-  db.collection('posts').find({_id: o_id}).toArray((err, result) => {
-    if (err) return console.log(err)
-   //console.log(result);
-   res.render('view',{posts: result});
-    
+  var img;
+  User.findOne({username:sess.username}, function(err, user) {
+    img = user.image;
+
+    Post.find({_id: o_id}, function(err, posts) {
+        var postObj = {};
+        postObj.image = img;
+        postObj.posts = posts;
+        //console.log("postObj.image is "+postObj.image);
+        res.render('view', {data:postObj});
+    })
   });
-  //console.log(req.params.id);
+  // db.collection('posts').find({_id: o_id}).toArray((err, result) => {
+  //   if (err) return console.log(err)
+  //  console.log(img);
+  //  res.render('view',{posts: result, image: img});
+    
 });
+
+app.get('/account', function(req, res) {
+  res.render('account');
+})
+
+// app.post('/photo', function(req,res){
+//   console.log("In the/photo route");
+//   console.log(req.files);
+//    var newItem = new Item();
+//    newItem.img.data = fs.readFileSync(req.files.photo);
+//    newItem.img.contentType = 'image/png';
+//    newItem.save();
+// });
 
 app.listen(port, '0.0.0.0', function() {
  console.log('Server running at port ' + port);

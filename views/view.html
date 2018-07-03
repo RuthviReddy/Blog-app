@@ -2,34 +2,38 @@
 	<head>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		
-		<title id="title" name="title"><%= posts[0].title %></title>
+		<title id="title" name="title"><%= data.posts[0].title %></title>
 	</head>
 
 	<body style="background-color: #F9EEFF; font-family: verdana; text-align: center;">
 
-		<% var postId = posts[0]._id %>
-		<% var postAuthor = posts[0].username %>
+		<% var postId = data.posts[0]._id %>
+		<% var postAuthor = data.posts[0].username %>
 		<% var viewProfile = '/viewProfile/'+postId %>
 		<% var viewProfile = '/viewProfile/'+postAuthor %>
 
 		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
 
-		<p style="font-size: 90%; float:left;"><a href="/feed">Visit your feed!</a> </p><br/>
+		<p style="font-size: 90%; text-align:left;"><a href="/feed">Visit your feed!</a> </p><br/>
 		<p style="text-align: left;"><a href="/yourProfile">Your posts!</a> </p>
 
-		<% var createdAt = moment(posts[0].createdAt).format('DD-MM-YYYY HH:MM') %>
-        <% var updatedAt = moment(posts[0].updatedAt).format('DD-MM-YYYY HH:MM') %>
+		<% var createdAt = moment(data.posts[0].createdAt).format('DD-MM-YYYY HH:MM') %>
+        <% var updatedAt = moment(data.posts[0].updatedAt).format('DD-MM-YYYY HH:MM') %>
 
-		<h1 id="heading" name="heading" style="text-align: center; font-size: 200%;"><%= posts[0].title %></h1>
-		<p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= posts[0].username %> </a></p>
+		<h1 id="heading" name="heading" style="text-align: center; font-size: 200%;"><%= data.posts[0].title %></h1>
+		<p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= data.posts[0].username %> </a>
+			<span> 
+	            <img style="width: 50px;height: 20px;"  src = <%= data.image %> > 
+	         </span>
+	    </p>
 		<p style = "font-size: 90%; text-align: center;"> Created on <%= createdAt %></p>
         
 		
 		<br/> <br/> <br/><br/>
-		<p style="text-align: center;"> <%- posts[0].blogpost %> </p>
+		 <%- data.posts[0].blogpost %>
 		
 		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
-            <input type="hidden" name="_id" value="<%= posts[0]._id %>">
+            <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
 
 
 			<br/><br/><br/>

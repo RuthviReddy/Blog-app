@@ -46,22 +46,27 @@ Logout</a> </p>
 		</div>
          <br/><br/>
 
-        <% for(let i = 0; i < posts.length; i++) { %>
+        <% for(let i = 0; i < data.posts.length; i++) { %>
         
-            <% var postId = posts[i]._id %>
+            <% var postId = data.posts[i]._id %>
             <% var editLink = '/editPost/'+postId %>
             <% var deleteLink = '/deletePost/'+postId %>
             <% var viewPost = '/viewPost/'+postId %>
-            <% var createdAt = moment(posts[i].createdAt).format('DD-MM-YYYY HH:MM') %>
-            <% var updatedAt = moment(posts[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
+            <% var createdAt = moment(data.posts[i].createdAt).format('DD-MM-YYYY HH:MM') %>
+            <% var updatedAt = moment(data.posts[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
             
             
             <article style= "text-align: center;">
-            	<p style = "font-size: 170%;"><%= posts[i].title %> </p>
+            	<p style = "font-size: 170%;"><%= data.posts[i].title %> </p>
                 
-                <%- posts[i].blogpost.substring(0,200) %>
+                <%- data.posts[i].blogpost.substring(0,200) %>
                 
-                <p style = "font-size: 90%"> Author <%= posts[i].username %></p>
+                <p style = "font-size: 90%"> Author <%= data.posts[i].username %> 
+                    <span> 
+                        <img style="width: 50px;height: 20px;"  src = <%= data.image %> > 
+                    </span>
+                </p> 
+
 
                 <p style = "font-size: 90%"> Created on <%= createdAt %></p>
                 
@@ -74,6 +79,8 @@ Logout</a> </p>
                 <p>-----------------------</p>
             </article>
         <% } %>
+
+        <p><a href='/account'>Click here to edit your profile</a></p>
 
     </body>
 </html>

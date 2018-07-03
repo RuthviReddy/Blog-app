@@ -245,7 +245,8 @@ var postSchema = new mongoose.Schema({
   username: String,//{type: Schema.Types.ObjectId, ref: 'User'},
   title: String,
   blogpost: String,
-  user_image: String
+  user_image: String,
+  likes: Number
   //time : { type : Date, default: Date.now }
 
 });

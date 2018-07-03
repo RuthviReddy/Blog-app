@@ -39,6 +39,9 @@ app.use(session ({key: 'user_sid',
                   secret: 'secretToSession', 
                   saveUninitialized: false, 
                   resave: true,
+                  cookie: {
+                    secure: 'auto'
+                  }
                   //cookie: { maxAge: 1209600000 }
                 }));
 
@@ -126,7 +129,7 @@ passport.use(new FacebookStrategy({
         user = new User ({
           username: profile.displayName,
           provider: 'facebook',
-          facebook: profile._json
+          facebookProfile: profile._json
         });
         //console.log(username);
         user.save(function(err) {
@@ -144,29 +147,48 @@ passport.use(new FacebookStrategy({
 passport.use(new TwitterStrategy({
   consumerKey: "ihFbevRggU6gmlzH0jx6VXxUh",
   consumerSecret: "r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol",
-  callbackURL: "http://127.0.0.1:1111/twitter/callback"
+  callbackURL: "http://127.0.0.1:1111/twitter/callback",
+  userProfileURL  : 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
 },
   function(accessToken, refreshToken, profile, done) {
-    //console.log(profile._json);
+    var data = profile._json;
+    
+
+   /* User.findOrCreate(..., function(err, user) {
+      done(err, user);
+    });*/
     User.findOne({
-      username: profile.username
-      //'twitter.id' : profile.id
+      //twitterId : data.id_str
+      email: data.email
     }, function(err, user) {
+      
       if(err) {
         return done(err);
       }
       if(!user) {
+        console.log("Creating new user through Twitter");
         user = new User ({
-          username: profile.username,
+          twitterId: data.id_str,
+          username: data.name,
           provider: 'twitter',
-          twitter: profile._json,
-          image: profile_image_url_https
+          twitterProfile: data,
+          email: data.email
         });
         user.save(function (err) {
           if(err) console.log(err);
           return done(err, user);
         });
-      } else {
+      } else if(user) {
+        console.log("User email exists. Adding Twitter data to same profile");
+        if(user.twitterId == null) {
+          user.twitterId= data.id_str,
+          //user.provider= 'twitter',
+          user.twitterProfile= data
+          return done(err, user);
+        }
+        
+      } 
+      else {
         return done(err, user);
       }
     });
@@ -181,26 +203,40 @@ passport.use(new GoogleStrategy({
     //console.log("Profile username is " + profile.displayName);
     //sess = req.session;
     //sess.username = profile.displayName;
-    console.log(profile._json);
+
+    //console.log(profile._json);
+    console.log("Email in google profile is "+ profile.emails[0].value);
     User.findOne({
-      username: profile.familyName
-      //'google.id' : profile.id
+      email: profile.emails[0].value
+      //googleId : profile.id
     }, function(err, user) {
       if(err) {
         return done(err);
       }
       if(!user) {
+        console.log("Creating new User through Google");
         user = new User ({
-          username: profile.familyName,
+          email: profile.emails[0].value,
+          username: profile.displayName,
           provider: 'google',
           google: profile._json,
-          image: image.url
+          googleId: profile.id,
+          googleProfile: profile._json
         });
         //console.log(profile.displayName);
         user.save(function (err) {
           if(err) console.log(err);
           return done(err, user);
         });
+      } else if(user){
+        console.log("Email already exists. Adding details");
+          if(user.googleId == null) {
+            
+            user.google= profile._json,
+            user.googleId= profile.id,
+            user.googleProfile= profile._json
+            return done(err, user);
+          }
       } else {
         return done(err, user);
       }
@@ -225,7 +261,14 @@ var UserSchema = new mongoose.Schema({
 	email: String,
 	username: String,
 	passwordHash: String,
-  image: String
+  image: String,
+  provider: String,
+  twitterId: String,
+  facebookId: String,
+  googleId: String,
+  googleProfile: Object,
+  twitterProfile: Object,
+  facebookProfile: Object
   //blogposts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
 
 });
@@ -246,7 +289,8 @@ var postSchema = new mongoose.Schema({
   title: String,
   blogpost: String,
   user_image: String,
-  likes: Number
+  likes: Number,
+  
   //time : { type : Date, default: Date.now }
 
 });
@@ -280,17 +324,23 @@ var Post = mongoose.model('Post', postSchema);
  res.sendFile( __dirname + '/signin.html');
 });*/
 var sess;
-app.get("/", ensureAuthenticated, (req, res) => {
+app.get('/', (req, res) => {
   
    res.render('signin');
 });
 
-function ensureAuthenticated(req, res, next) {
-  if(req.isAuthenticated()) { 
-    return next();
-  }
-  res.sendFile(__dirname + '/signin.html');
-}
+// function isAuthenticated(req, res, next) {
+//   if()
+//     return next();
+//   res.redirect('/');
+// }
+
+// function ensureAuthenticated(req, res, next) {
+//   if(req.isAuthenticated()) { 
+//     return next();
+//   }
+//   res.sendFile(__dirname + '/signin.html');
+// }
 
 app.get('/signup', function (req, res, next) {
     res.sendFile( __dirname + '/signup.html');
@@ -325,9 +375,10 @@ app.post('/signin', passport.authenticate("local", {
 
 //register with passport
 app.post('/signup', (req, res, next) => {
-  var { username, password } = req.body;
+  console.log(req.body);
+  var { email, username, password } = req.body;
   
-  User.create({username, password })
+  User.create({email, username, password })
     .then(user => {
       req.login(user, err => {
         if(err) next(err);
@@ -384,18 +435,20 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 	res.sendFile(__dirname + '/home.html');
   
 });*/
-app.get('/feed', ensureAuthenticated, (req, res) => {
+
+
+app.get('/feed', (req, res) => {
   //console.log(req.username);
-  sess = req.session;
-  sess.username = req.user.username;
-  Post.find({}, (err,posts) => {
-    res.render('feed', {posts: posts, username: sess.username});
-  });
+    sess = req.session;
+    sess.username = req.user.username;
+    Post.find({}, (err,posts) => {
+      res.render('feed', {posts: posts, username: sess.username});
+    });
 });
 
 
 //ejs route
-app.get('/home', ensureAuthenticated, (req, res) => {
+app.get('/home', (req, res) => {
       //console.log(req.user.username);
       sess = req.session;
       sess.username = req.user.username;
@@ -405,7 +458,7 @@ app.get('/home', ensureAuthenticated, (req, res) => {
 });
 
 
-app.get('/yourProfile', ensureAuthenticated, (req, res) => {
+app.get('/yourProfile',(req, res) => {
   //console.log(req.username);
   var img;
   User.findOne({username: sess.username}, function(err, user) {
@@ -480,7 +533,7 @@ app.get('/logout', function (req, res, next) {
 
 
 //ejs route
-app.post('/publishPost', ensureAuthenticated, (req, res) => {
+app.post('/publishPost', (req, res) => {
       
       //console.log("inside publish post");
       //console.log(req.body.editor_content);

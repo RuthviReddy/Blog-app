@@ -66,19 +66,42 @@
 
 			<!-- name="blogpost" rows="29" cols="100" style="resize: both;
 			    overflow: scroll; font-size: 300%%; font-family: verdana;" -->
-
 			
-				<textarea id="myEditor" name = "editor_content">
-
-				
-				    
+				<textarea id="myEditor" name = "editor_content">    
 				</textarea>
 	    	
 	    	<br/><br/><br/>
+	    	<input type="checkbox" name="tweet" id="tweet" onclick="postTweet()">Post to Twitter<br/>
+	    	<div class="hide rawText"></div>
+
 	    	<div class = "wrapper">
-	    		<input id = "submit" type="submit" value="Publish Post"> 
+	    		<input id = "submit" type="submit" value="Publish Post">
+	    		<!-- <input value="Publish Post" onclick="fun()"> -->
 	    	</div>
 	    </form>
+
+	   <!-- <script type="text/javascript">
+	    	function postTweet() {
+		    	var checkBox = document.getElementById("tweet");
+		    	var text = document.getElementById("myEditor");
+		    	console.log("In the script. checkBox.checked is "+ checkBox.checked);
+		    	if(checkBox.checked == true)
+		    	{
+		    		client.post('status/update', {status: text}, function(err, tweet, response) {
+		    		if(err) {throw err;}
+		    		console.log("Tweet is:" + text;
+		    		console.log("response is :" + response);
+		    		});
+		    	}
+	    	}
+	    </script> -->
+
+	    <script type="text/javascript"> 
+	    function fun() {
+	    	console.log("hello");
+	    	
+	    } 
+	    </script>
 	    
 	</body>
 </html>

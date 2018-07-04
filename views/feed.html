@@ -57,7 +57,7 @@ Logout</a> </p>
             
             <article style= "text-align: center;">
             	<p style = "font-size: 170%;"><%= posts[i].title %> </p>
-                <p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= posts[i].username %> </a></p>
+                <p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= posts[i].username %> </a></p> <br/>
 
                 <%- posts[i].blogpost.substring(0,200) %>
 

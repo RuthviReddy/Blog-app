@@ -67,6 +67,14 @@ var uniqueValidator = require("mongoose-unique-validator");
 var flash = require('connect-flash');
 app.use(flash());
 
+var twitter = require("twitter");
+var client = new twitter({
+  consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
+  consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
+  access_token_key: '1011867445450170368-PVp16zks4j9OD9AtyaSFx8mzpQCHKf',
+  access_token_secret: 'G8cZpFFsnVriPGonKy7iWBZvKuClYmuY1uDG929nQowgZ'
+});
+
 var passport = require('passport');
 
 var LocalStrategy = require('passport-local').Strategy;
@@ -104,9 +112,7 @@ passport.use(new FacebookStrategy({
   },
   function(accessToken, refreshToken, profile, done) {
     
-    //console.log("The profile is " + profile);
-    //console.log("The username of profile is "+ profile.displayName);
-    console.log(profile._json);
+     console.log(profile._json);
     User.findOne({
       username: profile.displayName
       //'facebook.id': profile.id
@@ -161,7 +167,8 @@ passport.use(new TwitterStrategy({
           username: data.name,
           provider: 'twitter',
           twitterProfile: data,
-          email: data.email
+          email: data.email,
+          twitterToken: accessToken
         });
         user.save(function (err) {
           if(err) console.log(err);
@@ -172,7 +179,8 @@ passport.use(new TwitterStrategy({
         if(user.twitterId == null) {
           User.update({email: data.email}, {
             twitterId: data.id_str,
-            twitterProfile: data
+            twitterProfile: data,
+            twitterToken: accessToken
           }, function(err,res) {
                 console.log(res);
               });
@@ -193,9 +201,9 @@ passport.use(new GoogleStrategy({
     //console.log("Profile username is " + profile.displayName);
     //sess = req.session;
     //sess.username = profile.displayName;
-
     //console.log(profile._json);
-    console.log("Email in google profile is "+ profile.emails[0].value);
+    //console.log("Access token is "+ accessToken)
+    //console.log("Email in google profile is "+ profile.emails[0].value);
     User.findOne({
       email: profile.emails[0].value
       //googleId : profile.id
@@ -211,7 +219,8 @@ passport.use(new GoogleStrategy({
           provider: 'google',
           google: profile._json,
           googleId: profile.id,
-          googleProfile: profile._json
+          googleProfile: profile._json,
+          googleToken: accessToken
         });
         //console.log(profile.displayName);
         user.save(function (err) {
@@ -219,13 +228,14 @@ passport.use(new GoogleStrategy({
           return done(err, user);
         });
       } else if(user){
-        console.log("Email already exists. Adding details");
-        console.log("Google id stored in users " + user.googleId);
+        //console.log("Email already exists. Adding details");
+        //console.log("Google id stored in users " + user.googleId);
           if(user.googleId == null) {
             User.update({email: profile.emails[0].value}, {
               google: profile._json,
               googleId: profile.id,
-              googleProfile: profile._json
+              googleProfile: profile._json,
+              googleToken: accessToken
             }, function(err, res) {
                 console.log(res);
               })
@@ -274,7 +284,10 @@ var UserSchema = new mongoose.Schema({
   googleId: String,
   googleProfile: Object,
   twitterProfile: Object,
-  facebookProfile: Object
+  facebookProfile: Object,
+  twitterToken: String,
+  facebookToken: String,
+  googleToken: String
   //blogposts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
 
 });
@@ -335,18 +348,13 @@ app.get('/', (req, res) => {
    res.render('signin');
 });
 
-// function isAuthenticated(req, res, next) {
-//   if()
-//     return next();
-//   res.redirect('/');
-// }
-
-// function ensureAuthenticated(req, res, next) {
-//   if(req.isAuthenticated()) { 
-//     return next();
-//   }
-//   res.sendFile(__dirname + '/signin.html');
-// }
+function loggedIn(req, res, next) {
+    if (req.user) {
+        next();
+    } else {
+        res.redirect('/');
+    }
+}
 
 app.get('/signup', function (req, res, next) {
     res.sendFile( __dirname + '/signup.html');
@@ -399,7 +407,7 @@ app.post('/signup', (req, res, next) => {
     });
 });
 
-app.get('/facebook', passport.authenticate('facebook', {scope: 'public_profile,email'}));
+app.get('/facebook', passport.authenticate('facebook', {scope: ['public_profile', 'email'] }));
 
 app.get('/facebook/callback', passport.authenticate('facebook', {failureRedirect: '/signin'}),
   function(req,res) {
@@ -443,7 +451,7 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 });*/
 
 
-app.get('/feed', (req, res) => {
+app.get('/feed', loggedIn, (req, res) => {
   //console.log("req.user.username id " + req.params);
     sess = req.session;
     sess.username = req.user.username;
@@ -454,7 +462,7 @@ app.get('/feed', (req, res) => {
 
 
 //ejs route
-app.get('/home', (req, res) => {
+app.get('/home', loggedIn, (req, res) => {
       //console.log(req.user.username);
       sess = req.session;
       sess.username = req.user.username;
@@ -464,7 +472,7 @@ app.get('/home', (req, res) => {
 });
 
 
-app.get('/yourProfile',(req, res) => {
+app.get('/yourProfile',loggedIn ,(req, res) => {
   //console.log(req.username);
   var img;
   User.findOne({username: sess.username}, function(err, user) {
@@ -491,19 +499,19 @@ app.get('/yourProfile',(req, res) => {
   // });
 });
 
-app.get('/new', function(req, res) {
+app.get('/new', loggedIn, function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'descending'}).exec(function(err, posts) {
     res.render('yourProfile', {posts: posts})
   });
 });
 
-app.get('/old', function(req, res) {
+app.get('/old', loggedIn, function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'ascending'}).exec(function(err, posts) {
     res.render('yourProfile', {posts: posts})
   });
 });
 
-app.get('/newFeed', function(req, res) {
+app.get('/newFeed', loggedIn, function(req, res) {
       sess = req.session;
       sess.username = req.user.username;
   Post.find().sort({createdAt : 'descending'}).exec(function(err, posts) {
@@ -511,7 +519,7 @@ app.get('/newFeed', function(req, res) {
   });
 });
 
-app.get('/oldFeed', function(req, res) {
+app.get('/oldFeed', loggedIn, function(req, res) {
       sess = req.session;
       sess.username = req.user.username;
   Post.find().sort({createdAt : 'ascending'}).exec(function(err, posts) {
@@ -539,10 +547,22 @@ app.get('/logout', function (req, res, next) {
 
 
 //ejs route
-app.post('/publishPost', (req, res) => {
+app.post('/publishPost', loggedIn ,(req, res) => {
       
       //console.log("inside publish post");
-      //console.log(req.body.editor_content);
+      //console.log(req.body.tweet);
+      if(req.body.tweet == 'on')
+      {
+        console.log("inside publish post's if condition");
+        client.post('statuses/update', {status: (req.body.editor_content).substring(0,50)}, function(err, tweet, response) {
+            if(err) {
+              console.log(err); 
+              throw err;
+            }
+            //console.log("Tweet is:" + req.body.editor_content);
+            console.log("response is :" + response._json);
+            });
+      }
       var postData = {
       username: sess.username,
       title: req.body.title,
@@ -561,20 +581,20 @@ app.post('/publishPost', (req, res) => {
 });
 
 
-app.get('/deletePost/:id', function(req,res) {
+app.get('/deletePost/:id', loggedIn, function(req,res) {
   //console.log(req.params.id);
-  console.log("Inside the delete route");
+  //console.log("Inside the delete route");
   var id = req.params.id;
   //console.log(id);
   var o_id = ObjectId(id);
   db.collection('posts').findAndRemove({_id:o_id} , function(err) {
     if(err) { res.send(err); }
     res.redirect('/yourProfile');
-    console.log("Post deleted successfully!");
+    //console.log("Post deleted successfully!");
   });
 });
 
-app.get('/editPost/:id', function(req, res) {
+app.get('/editPost/:id', loggedIn, function(req, res) {
   var id = req.params.id;
   //console.log(id);
   var o_id = ObjectId(id);
@@ -587,7 +607,7 @@ app.get('/editPost/:id', function(req, res) {
   //console.log(req.params.id);
 });
 
-app.get('/viewProfile/:Author', function(req,res) {
+app.get('/viewProfile/:Author', loggedIn, function(req,res) {
   //var id = req.params.;
   //var o_id = ObjectId(id);
   var name = req.params.Author;
@@ -624,14 +644,14 @@ app.get('/viewPost/:id', function(req, res) {
   var twitId;
   User.findOne({username:sess.username}, function(err, user) {
     img = user.image;
-    twitId = user.twitterProfile.screen_name;
+    //twitId = user.twitterProfile.screen_name;
     //console.log("TwitId is "+ twitId);
 
     Post.find({_id: o_id}, function(err, posts) {
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
-        postObj.twitterName = twitId;
+        //postObj.twitterName = twitId;
         //console.log("postObj.image is "+postObj.image);
         res.render('view', {data:postObj});
     })
@@ -643,7 +663,9 @@ app.get('/viewPost/:id', function(req, res) {
     
 });
 
-app.get('/account', function(req, res) {
+
+
+app.get('/account', loggedIn, function(req, res) {
   res.render('account');
 })
 

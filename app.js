@@ -78,17 +78,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-//serializing and deserializing tell Passport how to store Users in
-//and retrieve them from sessions
-passport.serializeUser(function(user, done) {
-  done(null, user.id);
-});
-
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
-    done(err, user);
-  });
-});
 
 //normal login on the app
 var local = new LocalStrategy(function(username, password, done) {
@@ -181,16 +170,17 @@ passport.use(new TwitterStrategy({
       } else if(user) {
         console.log("User email exists. Adding Twitter data to same profile");
         if(user.twitterId == null) {
-          user.twitterId= data.id_str,
-          //user.provider= 'twitter',
-          user.twitterProfile= data
-          return done(err, user);
+          User.update({email: data.email}, {
+            twitterId: data.id_str,
+            twitterProfile: data
+          }, function(err,res) {
+                console.log(res);
+              });
         }
         
       } 
-      else {
         return done(err, user);
-      }
+      
     });
   }));
 
@@ -230,18 +220,34 @@ passport.use(new GoogleStrategy({
         });
       } else if(user){
         console.log("Email already exists. Adding details");
+        console.log("Google id stored in users " + user.googleId);
           if(user.googleId == null) {
-            
-            user.google= profile._json,
-            user.googleId= profile.id,
-            user.googleProfile= profile._json
-            return done(err, user);
-          }
-      } else {
+            User.update({email: profile.emails[0].value}, {
+              google: profile._json,
+              googleId: profile.id,
+              googleProfile: profile._json
+            }, function(err, res) {
+                console.log(res);
+              })
+            }
+      } 
         return done(err, user);
-      }
+      
     });
 }));
+
+//serializing and deserializing tell Passport how to store Users in
+//and retrieve them from sessions
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
+
 
 module.exports = passport;
 
@@ -438,7 +444,7 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 
 
 app.get('/feed', (req, res) => {
-  //console.log(req.username);
+  console.log("req.user.username id " + req.params);
     sess = req.session;
     sess.username = req.user.username;
     Post.find({}, (err,posts) => {

@@ -554,7 +554,9 @@ app.post('/publishPost', loggedIn ,(req, res) => {
       if(req.body.tweet == 'on')
       {
         console.log("inside publish post's if condition");
-        client.post('statuses/update', {status: (req.body.editor_content).substring(0,50)}, function(err, tweet, response) {
+        //console.log(req.user.twitterProfile.screen_name);
+        var params = {screen_name: req.user.twitterProfile.screen_name}
+        client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: (req.body.editor_content).substring(0,50)}, function(err, tweet, response) {
             if(err) {
               console.log(err); 
               throw err;

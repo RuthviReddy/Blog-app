@@ -1,5 +1,9 @@
 <html>
 	<head>
+		<meta charset = "UTF-8">
+		<meta name = "description" content = "A blog post">
+		<meta name="keywords" content="blog, post, user">
+		
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		
 		<title id="title" name="title"><%= data.posts[0].title %></title>
@@ -11,6 +15,7 @@
 		<% var postAuthor = data.posts[0].username %>
 		<% var viewProfile = '/viewProfile/'+postId %>
 		<% var viewProfile = '/viewProfile/'+postAuthor %>
+		<% var url = "http://127.0.0.1:1111/viewPost/" + postId %>
 
 		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
 
@@ -34,7 +39,11 @@
 		
 		<br/><br/>
 
-		<a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a>
+		<a href="https://twitter.com/share" 
+		class="twitter-share-button" 
+		data-show-count="false"
+		data-text="Hey! Check out this blog post!"
+		data-url = <%= url %> >Tweet</a>
 		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8">
 		</script>
 

@@ -33,17 +33,39 @@
 		 <%- data.posts[0].blogpost %>
 		
 		<br/><br/>
+
+		<a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a>
+		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8">
+		</script>
+
+
 		<p>
 			<i class="fa fa-heart-o" aria-hidden="true"></i>
 		</p>
+
+		<!--<script language="javascript">
+		    function tweetCurrentPage()
+		    { window.open("https://twitter.com/share?url="+escape(window.location.href)+"&text="+document.title, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false; }
+		</script> 
+
+		<a class="tweet" href="javascript:tweetCurrentPage()" target="_blank" alt="Tweet this page">Tweet this page</a> -->
+
+		<!--<a href = "shareURL">Share</a>
+		<script async> 
+			var shareURL = "http://twitter.com/share?";
+			var params = {
+				url: "http://google.com",
+				text: "Check out this blog post!"
+				via: data.twitterName,
+			}
+			for(var prop in params) shareURL = shareURL + '&' + prop + '=' + encodeURIComponent(params[prop]);
+			window.open(shareURL, '',left=0,top=0,width=550,height=450); 
+		</script> -->
+
 		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
             <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
 
 
 			<br/><br/><br/>
-	    	
-	    
-
-
 	</body>
 </html>

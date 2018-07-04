@@ -444,7 +444,7 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 
 
 app.get('/feed', (req, res) => {
-  console.log("req.user.username id " + req.params);
+  //console.log("req.user.username id " + req.params);
     sess = req.session;
     sess.username = req.user.username;
     Post.find({}, (err,posts) => {
@@ -621,13 +621,17 @@ app.get('/viewPost/:id', function(req, res) {
   //console.log(id);
   var o_id = ObjectId(id);
   var img;
+  var twitId;
   User.findOne({username:sess.username}, function(err, user) {
     img = user.image;
+    twitId = user.twitterProfile.screen_name;
+    //console.log("TwitId is "+ twitId);
 
     Post.find({_id: o_id}, function(err, posts) {
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
+        postObj.twitterName = twitId;
         //console.log("postObj.image is "+postObj.image);
         res.render('view', {data:postObj});
     })

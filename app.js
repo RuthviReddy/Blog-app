@@ -113,7 +113,7 @@ passport.use(new FacebookStrategy({
     clientSecret: "a1a0fcee810d00b46e5385c7c4906f44",
     callbackURL: "http://localhost:1111/facebook/callback"
   },
-  function(accessToken, refreshToken, profile, done) {
+  function(accessToken, secretToken, profile, done) {
     
      console.log(profile._json);
     User.findOne({
@@ -127,7 +127,8 @@ passport.use(new FacebookStrategy({
         user = new User ({
           username: profile.displayName,
           provider: 'facebook',
-          facebookProfile: profile._json
+          facebookProfile: profile._json,
+          facebookTokenSecret: secretToken
         });
         //console.log(username);
         user.save(function(err) {
@@ -179,7 +180,8 @@ passport.use(new TwitterStrategy({
           provider: 'twitter',
           twitterProfile: data,
           email: data.email,
-          twitterToken: accessToken
+          twitterToken: accessToken,
+          twitterTokenSecret: secretToken
         });
         user.save(function (err) {
           if(err) console.log(err);
@@ -208,7 +210,7 @@ passport.use(new GoogleStrategy({
   clientSecret: "TpbPxzPlWcfL38XlzV3ZDp_k",
   callbackURL: "http://localhost:1111/google/callback"
 },
-  function(accessToken, refreshToken, profile, done) {
+  function(accessToken, secretToken, profile, done) {
     //console.log("Profile username is " + profile.displayName);
     //sess = req.session;
     //sess.username = profile.displayName;
@@ -231,7 +233,8 @@ passport.use(new GoogleStrategy({
           google: profile._json,
           googleId: profile.id,
           googleProfile: profile._json,
-          googleToken: accessToken
+          googleToken: accessToken,
+          googleTokenSecret: secretToken
         });
         //console.log(profile.displayName);
         user.save(function (err) {
@@ -297,8 +300,11 @@ var UserSchema = new mongoose.Schema({
   twitterProfile: Object,
   facebookProfile: Object,
   twitterToken: String,
+  twitterTokenSecret: String,
   facebookToken: String,
-  googleToken: String
+  facebookTokenSecret: String,
+  googleToken: String,
+  googleTokenSecret: String
   //blogposts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
 
 });
@@ -349,10 +355,7 @@ var Post = mongoose.model('Post', postSchema);
 
 //routes
 //adding the homepage route
-/*app.get('/', ensureAuthenticated, function (req, res, next) {	
-  	
- res.sendFile( __dirname + '/signin.html');
-});*/
+
 var sess;
 app.get('/', (req, res) => {
   
@@ -461,7 +464,6 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
   
 });*/
 
-
 app.get('/feed', loggedIn, (req, res) => {
   //console.log("req.user.username id " + req.params);
     sess = req.session;
@@ -470,7 +472,6 @@ app.get('/feed', loggedIn, (req, res) => {
       res.render('feed', {posts: posts, username: sess.username});
     });
 });
-
 
 //ejs route
 app.get('/home', loggedIn, (req, res) => {
@@ -481,7 +482,6 @@ app.get('/home', loggedIn, (req, res) => {
       res.render('home', {username: sess.username});
       
 });
-
 
 app.get('/yourProfile',loggedIn ,(req, res) => {
   //console.log(req.username);
@@ -512,13 +512,19 @@ app.get('/yourProfile',loggedIn ,(req, res) => {
 
 app.get('/new', loggedIn, function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'descending'}).exec(function(err, posts) {
-    res.render('yourProfile', {posts: posts})
+    var postObj = {};
+        //postObj.image = img;
+        postObj.posts = posts;
+    res.render('yourProfile', {data: postObj})
   });
 });
 
 app.get('/old', loggedIn, function(req, res) {
   Post.find({username: sess.username}).sort({createdAt : 'ascending'}).exec(function(err, posts) {
-    res.render('yourProfile', {posts: posts})
+    var postObj = {};
+        //postObj.image = img;
+        postObj.posts = posts;
+    res.render('yourProfile', {data: postObj})
   });
 });
 
@@ -558,26 +564,13 @@ app.get('/logout', function (req, res, next) {
 
 
 //ejs route
+var text;
+var counter = 0;
 app.post('/publishPost', loggedIn ,(req, res) => {
       
-      //console.log("inside publish post");
-      //console.log(req.body.tweet);
       if(req.body.tweet == 'on')
       {
-        console.log("inside publish post's if condition");
-        //console.log(req.user.twitterProfile.screen_name);
-        //var params = {screen_name: req.user.twitterProfile.screen_name}
-        var text = "Posted from my blog application: " + h2p((req.body.editor_content).substring(0,50));
-        //console.log(text);
-        //client.verify_credentials();
-        client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: text}, function(err, tweet, response) {
-            if(err) {
-              console.log(err); 
-              throw err;
-            }
-            //console.log("Tweet is:" + req.body.editor_content);
-            console.log("response is :" + response._json);
-            });
+          counter = 1;
       }
       var postData = {
       username: sess.username,
@@ -589,6 +582,18 @@ app.post('/publishPost', loggedIn ,(req, res) => {
       if(err) {
         return next(err);
       } else {
+        
+        if(counter == 1) {
+          text = "Check out my blog post: http://127.0.0.1:1111/viewPost/"+post._id;
+          console.log("The tweet will be "+text);
+          client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: text}, function(err, tweet, response) {
+            if(err) {
+              console.log(err); 
+              throw err;
+            }
+              //console.log("response is :" + response._json);
+          });
+      }
         return res.redirect('/yourProfile');
       }
         

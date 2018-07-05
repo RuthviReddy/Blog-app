@@ -70,12 +70,13 @@ var flash = require('connect-flash');
 app.use(flash());
 
 var twitter = require("twitter");
-var client = new twitter({
-  consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
-  consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
-  access_token_key: '1011867445450170368-PVp16zks4j9OD9AtyaSFx8mzpQCHKf',
-  access_token_secret: 'G8cZpFFsnVriPGonKy7iWBZvKuClYmuY1uDG929nQowgZ'
-});
+var client;
+// var client = new twitter({
+//   consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
+//   consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
+//   access_token_key: '1011867445450170368-PVp16zks4j9OD9AtyaSFx8mzpQCHKf',
+//   access_token_secret: 'G8cZpFFsnVriPGonKy7iWBZvKuClYmuY1uDG929nQowgZ'
+// });
 
 var passport = require('passport');
 
@@ -147,8 +148,16 @@ passport.use(new TwitterStrategy({
   callbackURL: "http://127.0.0.1:1111/twitter/callback",
   userProfileURL  : 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
 },
-  function(accessToken, refreshToken, profile, done) {
+  function(accessToken, secretToken, profile, done) {
     var data = profile._json;
+    //console.log("Access token is "+ accessToken);
+    //console.log("Refresh token is "+ refreshToken);
+    client = new twitter({
+      consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
+      consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
+      access_token_key: accessToken,
+      access_token_secret: secretToken
+    });
     
 
    /* User.findOrCreate(..., function(err, user) {
@@ -558,8 +567,9 @@ app.post('/publishPost', loggedIn ,(req, res) => {
         console.log("inside publish post's if condition");
         //console.log(req.user.twitterProfile.screen_name);
         //var params = {screen_name: req.user.twitterProfile.screen_name}
-        var text = h2p((req.body.editor_content).substring(0,50));
-        console.log(text);
+        var text = "Posted from my blog application: " + h2p((req.body.editor_content).substring(0,50));
+        //console.log(text);
+        //client.verify_credentials();
         client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: text}, function(err, tweet, response) {
             if(err) {
               console.log(err); 

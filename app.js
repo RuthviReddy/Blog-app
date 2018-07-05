@@ -11,6 +11,8 @@ var bodyParser = require('body-parser');
 
 var timestamps = require('mongoose-timestamp');
 
+var h2p = require('html2plaintext')
+
 var moment = require('moment');
 //moment().format();
 app.locals.moment = require('moment');
@@ -555,8 +557,10 @@ app.post('/publishPost', loggedIn ,(req, res) => {
       {
         console.log("inside publish post's if condition");
         //console.log(req.user.twitterProfile.screen_name);
-        var params = {screen_name: req.user.twitterProfile.screen_name}
-        client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: (req.body.editor_content).substring(0,50)}, function(err, tweet, response) {
+        //var params = {screen_name: req.user.twitterProfile.screen_name}
+        var text = h2p((req.body.editor_content).substring(0,50));
+        console.log(text);
+        client.post('statuses/update', {screen_name: req.user.twitterProfile.screen_name, status: text}, function(err, tweet, response) {
             if(err) {
               console.log(err); 
               throw err;
@@ -569,7 +573,7 @@ app.post('/publishPost', loggedIn ,(req, res) => {
       username: sess.username,
       title: req.body.title,
       blogpost: req.body.editor_content,
-    }
+      }
 
     Post.create(postData, function(err, post) {
       if(err) {

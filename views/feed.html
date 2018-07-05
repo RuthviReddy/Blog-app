@@ -1,6 +1,7 @@
 <html>
     <head>
     	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     	<title> Blog Posts </title>
     	<style>
@@ -22,7 +23,36 @@
 			.dropdown:hover .dropdown-content {
 			    display: block;
 			}
+
+            .hide {
+                display: none;
+            }
+
     	</style>
+
+        <script>
+            $(document).ready(function(){
+
+                $('.likeButton').click(function(event){
+
+                    console.log($(event.target));
+                    var postId = $(event.target).attr('data-id');
+                    var color = $(event.target).attr('style');
+                    console.log("PostID:" + postId);
+                    var likes = $(event.target).attr('data-count');
+                    likes++;
+                    $('.likesCount[data-id="'+postId+'"]').html(likes);
+                    var data = {postId: postId, likesCount: likes};
+                    $.post('/like', data);
+                    $('.likeButton[data-id="'+postId+'"]').css('color','red');
+                    
+                });
+
+            });
+
+            
+            </script>
+
     </head>
     
     <body style="background-color: #F9EEFF; font-family: verdana;">
@@ -47,8 +77,13 @@ Logout</a> </p>
         
 
         <% for(let i = 0; i < posts.length; i++) { %>
-        
-            <% var postId = posts[i]._id %>
+
+            
+            <% var postId = posts[i]._id 
+            var likes = 0;
+            if(posts[i].likes){
+               likes = posts[i].likes;
+            } %>
             <% var postAuthor = posts[i].username %>
             <% var viewPost = '/viewPost/'+postId %>
             <% var viewProfile = '/viewProfile/'+postAuthor %>
@@ -65,18 +100,23 @@ Logout</a> </p>
                 
                 <span>
                     <a href = <%= viewPost %> ><i title = "View entire post" class="fa fa-eye" aria-hidden="true" style="color: blue;"></i></a> &ensp; </span>
-                
-                <span>
-                    <button class="like" id="likeButton" onclick="updateLikes()">
-                        <i class="fa fa-heart-o" aria-hidden="true"></i>
-                        <span> <%= posts[i].likes %> </span>
-                    </button>
-                </span>
-                
+
+                <span class = "stackIcons"> 
+                    
+                        <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= posts[i].likes %> ></i>
+
+                        <span class="likesCount"
+                         data-id = <%= postId %>> <%= posts[i].likes %> </span>
+                    
+                </span> 
+
+                                    
 
                 <p>-----------------------</p>
             </article>
+            
         <% } %>
+
 
         
     </body>

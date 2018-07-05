@@ -3,7 +3,7 @@
 		<meta charset = "UTF-8">
 		<meta name = "description" content = "A blog post">
 		<meta name="keywords" content="blog, post, user">
-		
+
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		
 		<title id="title" name="title"><%= data.posts[0].title %></title>
@@ -51,25 +51,6 @@
 		<p>
 			<i class="fa fa-heart-o" aria-hidden="true"></i>
 		</p>
-
-		<!--<script language="javascript">
-		    function tweetCurrentPage()
-		    { window.open("https://twitter.com/share?url="+escape(window.location.href)+"&text="+document.title, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false; }
-		</script> 
-
-		<a class="tweet" href="javascript:tweetCurrentPage()" target="_blank" alt="Tweet this page">Tweet this page</a> -->
-
-		<!--<a href = "shareURL">Share</a>
-		<script async> 
-			var shareURL = "http://twitter.com/share?";
-			var params = {
-				url: "http://google.com",
-				text: "Check out this blog post!"
-				via: data.twitterName,
-			}
-			for(var prop in params) shareURL = shareURL + '&' + prop + '=' + encodeURIComponent(params[prop]);
-			window.open(shareURL, '',left=0,top=0,width=550,height=450); 
-		</script> -->
 
 		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
             <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">

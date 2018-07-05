@@ -20,9 +20,6 @@ exports.index = function(req, res) {
     res.render('profile', { moment: moment });
 }
 
-// var multer = require('multer');
-// var fs = require('fs');
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
@@ -49,20 +46,6 @@ app.use(session ({key: 'user_sid',
 
 var ObjectId = require('mongodb').ObjectID;
 
-/*app.use(function(req, res, next) {
-  var sess = req.session;
-  if(sess.views) {
-    res.setHeader('Content-Type', 'text/html');
-          res.write('<p>views: ' + sess.views + '</p>');
-          res.end();
-          sess.views++;
-          console.log(sess.views);
-  } else {
-    sess.views = 1;
-    console.log("You're coming here for the first time!");
-  }
-});*/
-
 //plugin which adds pre-save validation for unique fields within a Mongoose schema.
 var uniqueValidator = require("mongoose-unique-validator");
 
@@ -71,12 +54,6 @@ app.use(flash());
 
 var twitter = require("twitter");
 var client;
-// var client = new twitter({
-//   consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
-//   consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
-//   access_token_key: '1011867445450170368-PVp16zks4j9OD9AtyaSFx8mzpQCHKf',
-//   access_token_secret: 'G8cZpFFsnVriPGonKy7iWBZvKuClYmuY1uDG929nQowgZ'
-// });
 
 var passport = require('passport');
 
@@ -151,8 +128,7 @@ passport.use(new TwitterStrategy({
 },
   function(accessToken, secretToken, profile, done) {
     var data = profile._json;
-    //console.log("Access token is "+ accessToken);
-    //console.log("Refresh token is "+ refreshToken);
+    
     client = new twitter({
       consumer_key: 'ihFbevRggU6gmlzH0jx6VXxUh',
       consumer_secret: 'r8W2v3UNFeg3cdPOIV0CvZ2P0UF9bNERM419co7WJf0JZNYTol',
@@ -160,11 +136,7 @@ passport.use(new TwitterStrategy({
       access_token_secret: secretToken
     });
     
-
-   /* User.findOrCreate(..., function(err, user) {
-      done(err, user);
-    });*/
-    User.findOne({
+     User.findOne({
       //twitterId : data.id_str
       email: data.email
     }, function(err, user) {
@@ -211,12 +183,7 @@ passport.use(new GoogleStrategy({
   callbackURL: "http://localhost:1111/google/callback"
 },
   function(accessToken, secretToken, profile, done) {
-    //console.log("Profile username is " + profile.displayName);
-    //sess = req.session;
-    //sess.username = profile.displayName;
-    //console.log(profile._json);
-    //console.log("Access token is "+ accessToken)
-    //console.log("Email in google profile is "+ profile.emails[0].value);
+    
     User.findOne({
       email: profile.emails[0].value
       //googleId : profile.id
@@ -321,7 +288,7 @@ var User = mongoose.model('User', UserSchema);
 
 //creating a Schema for the blog posts
 var postSchema = new mongoose.Schema({
-  username: String,//{type: Schema.Types.ObjectId, ref: 'User'},
+  username: String,
   title: String,
   blogpost: String,
   user_image: String,
@@ -334,28 +301,9 @@ var postSchema = new mongoose.Schema({
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
 
-//defining schema for Imgage-uploads using Multer
-//data type Buffer allows us to store our image as data in the form of arrays
-// var ItemSchema = new mongoose.Schema({
-//   img:
-//       { data: Buffer, contentType: String }
-//     });
 
-// var Item = mongoose.model('Item', ItemSchema);
 
-//defining the image upload path for multer
-/*app.use(multer({ dest: './uploads/',
- rename: function (fieldname, filename) {
-   return filename;
- },
-}));*/
-// var uploads = multer({
-//   dest: 'uploads/'
-// });
-
-//routes
-//adding the homepage route
-
+//ROUTES
 var sess;
 app.get('/', (req, res) => {
   
@@ -475,7 +423,7 @@ app.get('/feed', loggedIn, (req, res) => {
 
 //ejs route
 app.get('/home', loggedIn, (req, res) => {
-      //console.log(req.user.username);
+      
       sess = req.session;
       sess.username = req.user.username;
       //console.log("The session username is" + sess.username);
@@ -484,7 +432,7 @@ app.get('/home', loggedIn, (req, res) => {
 });
 
 app.get('/yourProfile',loggedIn ,(req, res) => {
-  //console.log(req.username);
+  
   var img;
   User.findOne({username: sess.username}, function(err, user) {
       //console.log(user);
@@ -591,48 +539,40 @@ app.post('/publishPost', loggedIn ,(req, res) => {
               console.log(err); 
               throw err;
             }
-              //console.log("response is :" + response._json);
           });
       }
         return res.redirect('/yourProfile');
-      }
-        
+      }    
     });
-
 });
 
-
 app.get('/deletePost/:id', loggedIn, function(req,res) {
-  //console.log(req.params.id);
-  //console.log("Inside the delete route");
+  
   var id = req.params.id;
-  //console.log(id);
   var o_id = ObjectId(id);
   db.collection('posts').findAndRemove({_id:o_id} , function(err) {
     if(err) { res.send(err); }
     res.redirect('/yourProfile');
-    //console.log("Post deleted successfully!");
+    console.log("Post deleted successfully!");
   });
 });
 
 app.get('/editPost/:id', loggedIn, function(req, res) {
   var id = req.params.id;
-  //console.log(id);
   var o_id = ObjectId(id);
   db.collection('posts').find({_id: o_id}).toArray((err, result) => {
     if (err) return console.log(err)
-   //console.log(result);
    res.render('edit',{posts: result});
     
   });
-  //console.log(req.params.id);
+  
 });
 
 app.get('/viewProfile/:Author', loggedIn, function(req,res) {
   //var id = req.params.;
   //var o_id = ObjectId(id);
   var name = req.params.Author;
-  //console.log(req.params.Author);
+  
   db.collection('posts').find({username : name}).toArray((err, result) => {
     if(err) return console.log(err);
 
@@ -641,7 +581,7 @@ app.get('/viewProfile/:Author', loggedIn, function(req,res) {
 })
 
 app.post('/edit',(req, res) => {
-  //console.log(req.body);
+  
  db.collection('posts').update ({ _id: ObjectId(req.body._id) }, {$set: {
     title: req.body.title,
     blogpost: req.body.blogpost
@@ -662,17 +602,14 @@ app.get('/viewPost/:id', function(req, res) {
   //console.log(id);
   var o_id = ObjectId(id);
   var img;
-  var twitId;
+  
   User.findOne({username:sess.username}, function(err, user) {
     img = user.image;
-    //twitId = user.twitterProfile.screen_name;
-    //console.log("TwitId is "+ twitId);
-
+    
     Post.find({_id: o_id}, function(err, posts) {
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
-        //postObj.twitterName = twitId;
         //console.log("postObj.image is "+postObj.image);
         res.render('view', {data:postObj});
     })
@@ -684,20 +621,9 @@ app.get('/viewPost/:id', function(req, res) {
     
 });
 
-
-
 app.get('/account', loggedIn, function(req, res) {
   res.render('account');
 })
-
-// app.post('/photo', function(req,res){
-//   console.log("In the/photo route");
-//   console.log(req.files);
-//    var newItem = new Item();
-//    newItem.img.data = fs.readFileSync(req.files.photo);
-//    newItem.img.contentType = 'image/png';
-//    newItem.save();
-// });
 
 app.listen(port, '0.0.0.0', function() {
  console.log('Server running at port ' + port);

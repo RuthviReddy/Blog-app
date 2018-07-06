@@ -100,7 +100,9 @@ Logout</a> </p>
                 
                 <span>
                     <a href = <%= viewPost %> ><i title = "View entire post" class="fa fa-eye" aria-hidden="true" style="color: blue;"></i></a> &ensp; </span>
-
+                <% var counter = (posts[i].likedBy).indexOf(username);
+                if(counter == -1) {  %>
+                
                 <span class = "stackIcons"> 
                     
                         <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= posts[i].likes %> ></i>
@@ -109,6 +111,16 @@ Logout</a> </p>
                          data-id = <%= postId %>> <%= posts[i].likes %> </span>
                     
                 </span> 
+                <% } else { %>
+                <span class = "stackIcons"> 
+                    
+                        <i class="fa fa-heart-o likeButton" style="color: red;" aria-hidden="true" data-id=<%= postId %> data-count= <%= posts[i].likes %> ></i>
+
+                        <span class="likesCount"
+                         data-id = <%= postId %>> <%= posts[i].likes %> </span>
+                    
+                </span> 
+                <% } %>
 
                                     
 
@@ -116,6 +128,7 @@ Logout</a> </p>
             </article>
             
         <% } %>
+
 
 
         

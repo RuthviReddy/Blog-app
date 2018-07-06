@@ -5,8 +5,33 @@
 		<meta name="keywords" content="blog, post, user">
 
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		
 		<title id="title" name="title"><%= data.posts[0].title %></title>
+
+		<script>
+            $(document).ready(function(){
+
+                $('.likeButton').click(function(event){
+
+                    console.log($(event.target));
+                    var postId = $(event.target).attr('data-id');
+                    var color = $(event.target).attr('style');
+                    console.log("PostID:" + postId);
+                    var likes = $(event.target).attr('data-count');
+                    likes++;
+                    $('.likesCount[data-id="'+postId+'"]').html(likes);
+                    var data = {postId: postId, likesCount: likes};
+                    $.post('/like', data);
+                    $('.likeButton[data-id="'+postId+'"]').css('color','red');
+                    
+                });
+
+            });
+
+            
+            </script>
+
 	</head>
 
 	<body style="background-color: #F9EEFF; font-family: verdana; text-align: center;">
@@ -48,12 +73,22 @@
 		</script>
 
 
-		<p>
-			<i class="fa fa-heart-o" aria-hidden="true"></i>
-		</p>
+		<span class = "stackIcons"> 
+                    
+            <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= data.posts[0].likes %> ></i>
+
+            <span class="likesCount"
+                         data-id = <%= postId %>> <%= data.posts[0].likes %> </span>
+                    
+                </span> 
 
 		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
             <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
+
+            <form action="/comment">
+            	<input type="text">
+            	<input type="button" name="Comment" value="Leave a comment">
+            </form>
 
 
 			<br/><br/><br/>

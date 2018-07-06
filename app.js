@@ -293,7 +293,8 @@ var postSchema = new mongoose.Schema({
   blogpost: String,
   user_image: String,
   likes: {type : Number, default: 0},
-  likedBy: Array
+  likedBy: [String],
+  comments: Array
   
   //time : { type : Date, default: Date.now }
 

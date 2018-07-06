@@ -292,7 +292,8 @@ var postSchema = new mongoose.Schema({
   title: String,
   blogpost: String,
   user_image: String,
-  likes: Number,
+  likes: {type : Number, default: 0},
+  likedBy: Array
   
   //time : { type : Date, default: Date.now }
 
@@ -416,7 +417,7 @@ app.get('/feed', loggedIn, (req, res) => {
   //console.log("req.user.username id " + req.params);
     sess = req.session;
     sess.username = req.user.username;
-    Post.find({}, (err,posts) => {
+    Post.find({username: { $ne: sess.username} }, (err,posts) => {
       res.render('feed', {posts: posts, username: sess.username});
     });
 });
@@ -524,6 +525,7 @@ app.post('/publishPost', loggedIn ,(req, res) => {
       username: sess.username,
       title: req.body.title,
       blogpost: req.body.editor_content,
+      //likes: 0
       }
 
     Post.create(postData, function(err, post) {
@@ -620,6 +622,35 @@ app.get('/viewPost/:id', function(req, res) {
   //  res.render('view',{posts: result, image: img});
     
 });
+
+
+app.post('/like', function(req, res) {
+  
+  console.log("In the like route");
+  sess = req.session;
+  sess.username = req.user.username;
+  var id = req.body.postId;
+  var o_id = ObjectId(id);
+  var likesCount = req.body.likesCount;
+  console.log(likesCount);
+  db.collection('posts').update ({ _id: o_id }, 
+    {$inc: { likes: 1} , $push: {likedBy: sess.username}}, 
+    function (err, result){
+      if(err) {
+        console.log(err);
+      } else {
+        //console.log(result);
+        console.log("Like updated");
+      }
+ });
+  // Post.find({_id: o_id}, function(err, posts){
+  //   //console.log("Inside Posts.find" + posts);
+  //   posts.likes = likesCount;
+  //   console.log(posts);
+
+  //});
+});
+
 
 app.get('/account', loggedIn, function(req, res) {
   res.render('account');

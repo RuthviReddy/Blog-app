@@ -41,6 +41,10 @@
 		<% var viewProfile = '/viewProfile/'+postId %>
 		<% var viewProfile = '/viewProfile/'+postAuthor %>
 		<% var url = "http://127.0.0.1:1111/viewPost/" + postId %>
+		<% var commentPost = '/commentPost/'+postId %>
+		<% var commentsArray = data.posts[0].comments; %>
+		<% var numberOfComments = (data.posts[0].comments).length; %>
+		
 
 		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
 
@@ -72,24 +76,46 @@
 		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8">
 		</script>
 
-
+		<% var counter = (data.posts[0].likedBy).indexOf(username);
+                if(counter == -1) {  %>
 		<span class = "stackIcons"> 
                     
             <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= data.posts[0].likes %> ></i>
 
             <span class="likesCount"
                          data-id = <%= postId %>> <%= data.posts[0].likes %> </span>
+                   
+         </span> 
+         <% } else { %>
+         <span class = "stackIcons"> 
                     
-                </span> 
+            <i class="fa fa-heart-o likeButton" style="color: red;" aria-hidden="true" data-id=<%= postId %> data-count= <%= data.posts[0].likes %> ></i>
 
-		<p> <a href = <%= viewProfile %> View more from this author! </a></p>
-            <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
+            <span class="likesCount"
+                         data-id = <%= postId %>> <%= data.posts[0].likes %> </span>
+                    
+         </span> 
+         <% } %>
 
-            <form action="/comment">
-            	<input type="text">
-            	<input type="button" name="Comment" value="Leave a comment">
+
+
+            <form action= <%= commentPost %> >
+            	<p style="text-align: center;">Leave a comment:  <input name="comment" id="comment" type="text" class="comment" required="true"/> </p>
+          
+            	<input type="submit" value="Submit">
             </form>
+            <br><br>
+            <% for(let i = 0; i < numberOfComments; i++) { %>
 
+            <article style= "text-align: center;">
+            	<span style="font-size: 90%">"<%= commentsArray[i].comment %>" </span>
+            	<span style="font-size: 70%"> By <%= commentsArray[i].username %> </span>
+
+            </article><br>
+
+            <% } %>
+            <p> <a href = <%= viewProfile %> View more from this author! </a></p>
+            <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
 
 			<br/><br/><br/>
 	</body>

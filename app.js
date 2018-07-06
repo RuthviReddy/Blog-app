@@ -294,7 +294,12 @@ var postSchema = new mongoose.Schema({
   user_image: String,
   likes: {type : Number, default: 0},
   likedBy: [String],
-  comments: Array
+  // comments: [{
+  //             username : String, 
+  //             comment : String
+  //           }]
+
+  comments : { type : Array , "default" : [] }
   
   //time : { type : Date, default: Date.now }
 
@@ -601,6 +606,8 @@ app.post('/edit',(req, res) => {
 })});
 
 app.get('/viewPost/:id', function(req, res) {
+  sess = req.session;
+  sess.username = req.user.username;
   var id = req.params.id;
   //console.log(id);
   var o_id = ObjectId(id);
@@ -614,7 +621,7 @@ app.get('/viewPost/:id', function(req, res) {
         postObj.image = img;
         postObj.posts = posts;
         //console.log("postObj.image is "+postObj.image);
-        res.render('view', {data:postObj});
+        res.render('view', {data:postObj, username: sess.username});
     })
   });
   // db.collection('posts').find({_id: o_id}).toArray((err, result) => {
@@ -652,6 +659,32 @@ app.post('/like', function(req, res) {
   //});
 });
 
+app.get('/commentPost/:id', loggedIn, function(req, res) {
+
+  
+  var commentUsername = req.user.username;
+  var commentField = req.query.comment;
+  var id = req.params.id;
+  var o_id = ObjectId(id);
+  
+  db.collection("posts").update({_id: o_id}, {$push: {
+      comments: {
+        "username" : commentUsername,
+        "comment" : commentField
+      }
+    }
+  }, function(err, res) {
+    if(err) {
+      throw err;
+      console.log(err);
+    } 
+  }); 
+  Post.find({_id: o_id}, function(err, posts) {
+         var postObj = {};
+         postObj.posts = posts;
+        res.render('view', {data:postObj, username: commentUsername});
+  }); 
+});
 
 app.get('/account', loggedIn, function(req, res) {
   res.render('account');

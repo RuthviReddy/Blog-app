@@ -76,6 +76,8 @@
 		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8">
 		</script>
 
+		
+	<% if( (data.posts[0].username) != username ) { %>
 		<% var counter = (data.posts[0].likedBy).indexOf(username);
                 if(counter == -1) {  %>
 		<span class = "stackIcons"> 
@@ -96,6 +98,7 @@
                     
          </span> 
          <% } %>
+    <% } %>
 
 
 

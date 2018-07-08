@@ -1,17 +1,16 @@
 var http = require('http');
-
 var express = require('express');
 var app = express();
 
 var port=1111;
+
+var stream = require('getstream-node');
 
 var mongoose = require('mongoose');
 
 var bodyParser = require('body-parser');
 
 var timestamps = require('mongoose-timestamp');
-
-var h2p = require('html2plaintext')
 
 var moment = require('moment');
 //moment().format();
@@ -28,6 +27,7 @@ app.use(bodyParser.urlencoded({
 //for the ejs engine
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
+
 
 var bcrypt = require('bcrypt');
 var salt = 10;
@@ -64,7 +64,6 @@ var GoogleStrategy = require ('passport-google-oauth').OAuth2Strategy;
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 
 //normal login on the app
@@ -294,20 +293,18 @@ var postSchema = new mongoose.Schema({
   user_image: String,
   likes: {type : Number, default: 0},
   likedBy: [String],
-  // comments: [{
-  //             username : String, 
-  //             comment : String
-  //           }]
-
   comments : { type : Array , "default" : [] }
-  
-  //time : { type : Date, default: Date.now }
-
 });
 
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
 
+postSchema.plugin(stream.mongoose.activity);
+stream.mongoose.setupMongoose(mongoose);
+
+postSchema.methods.activityActorProp = function() {
+  return 'username';
+}
 
 
 //ROUTES
@@ -423,9 +420,9 @@ app.get('/feed', loggedIn, (req, res) => {
   //console.log("req.user.username id " + req.params);
     sess = req.session;
     sess.username = req.user.username;
-    Post.find({username: { $ne: sess.username} }, (err,posts) => {
-      res.render('feed', {posts: posts, username: sess.username});
-    });
+    Post.find({username: { $ne: sess.username}}).sort({createdAt : 'descending'}).exec(function(err, posts) {
+    res.render('feed', {posts: posts, username: sess.username})
+  });
 });
 
 //ejs route
@@ -450,6 +447,7 @@ app.get('/yourProfile',loggedIn ,(req, res) => {
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
+        postObj.username = sess.username;
         //console.log(postObj.image);
         res.render('yourProfile', {data: postObj})
       });
@@ -688,7 +686,7 @@ app.get('/commentPost/:id', loggedIn, function(req, res) {
 
 app.get('/account', loggedIn, function(req, res) {
   res.render('account');
-})
+});
 
 app.listen(port, '0.0.0.0', function() {
  console.log('Server running at port ' + port);

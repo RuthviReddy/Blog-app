@@ -449,9 +449,29 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
 app.get('/feed', loggedIn, function(req, res){
     sess = req.session;
     sess.username = req.user.username;
-    Post.find({username: { $ne: sess.username}}).sort({createdAt : 'descending'}).exec(function(err, posts) {
-    res.render('feed', {posts: posts, username: sess.username})
-  });
+
+    Timeline.findOne({user: sess.username}, function(err, timeline) {
+      //console.log(timeline);
+      var l = (timeline.postsFeed).length;
+      var limit = 10;
+      if(l < 10) {
+        limit = l;
+      }
+      var i;
+      var data = [];
+      var postIdArr = [];
+      for(i=0; i<limit; i++) 
+      {
+          var pID = ObjectId(timeline.postsFeed[l-1].id);
+          postIdArr.push( pID );
+          l--;
+      }
+      
+      Post.find({_id: {$in: postIdArr}}, function(err, output) {
+        data = output;
+        res.render('feed', {data: data, username: sess.username});
+      });
+    });
 });
 
 //ejs route

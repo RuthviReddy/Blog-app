@@ -74,52 +74,50 @@ Logout</a> </p>
 		</div>
          <br/><br/>
 
-        
-
-        <% for(let i = 0; i < posts.length; i++) { %>
+        <% for(let i = (data.length - 1); i >= 0; i--) { %>
 
             
-            <% var postId = posts[i]._id 
+            <% var postId = data[i]._id; 
             var likes = 0;
-            if(posts[i].likes){
-               likes = posts[i].likes;
+            if(data[i].likes){
+               likes = data[i].likes;
             } %>
-            <% var postAuthor = posts[i].username %>
+            <% var postAuthor = data[i].username %>
             <% var viewPost = '/viewPost/'+postId %>
             <% var viewProfile = '/viewProfile/'+postAuthor %>
-            <% var createdAt = moment(posts[i].createdAt).format('DD-MM-YYYY HH:MM') %>
-            <% var updatedAt = moment(posts[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
-            <% var commentsLength = (posts[i].comments).length %>
+            <% var createdAt = moment(data[i].createdAt).format('DD-MM-YYYY HH:MM') %>
+            <% var updatedAt = moment(data[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
+            <% var commentsLength = (data[i].comments).length %>
             <% var viewComments = '/viewComments/'+postId %>
             
             <article style= "text-align: center;">
-            	<p style = "font-size: 170%;"><%= posts[i].title %> </p>
-                <p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= posts[i].username %> </a></p> <br/>
+            	<p style = "font-size: 170%;"><%= data[i].title %> </p>
+                <p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= data[i].username %> </a></p> <br/>
 
-                <%- posts[i].blogpost.substring(0,200) %>
+                <%- data[i].blogpost.substring(0,200) %>
 
                 <p style = "font-size: 90%"> Created on <%= createdAt %></p>
                 
                 <span>
                     <a href = <%= viewPost %> ><i title = "View entire post" class="fa fa-eye" aria-hidden="true" style="color: blue;"></i></a> &ensp; </span>
-                <% var counter = (posts[i].likedBy).indexOf(username);
+                <% var counter = (data[i].likedBy).indexOf(username);
                 if(counter == -1) {  %>
                 
                 <span class = "stackIcons"> 
                     
-                        <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= posts[i].likes %> ></i>
+                        <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= data[i].likes %> ></i>
 
                         <span class="likesCount"
-                         data-id = <%= postId %>> <%= posts[i].likes %> </span>
+                         data-id = <%= postId %>> <%= data[i].likes %> </span>
                     
                 </span> 
                 <% } else { %>
                 <span class = "stackIcons"> 
                     
-                        <i class="fa fa-heart-o likeButton" style="color: red;" aria-hidden="true" data-id=<%= postId %> data-count= <%= posts[i].likes %> ></i>
+                        <i class="fa fa-heart-o likeButton" style="color: red;" aria-hidden="true" data-id=<%= postId %> data-count= <%= data[i].likes %> ></i>
 
                         <span class="likesCount"
-                         data-id = <%= postId %>> <%= posts[i].likes %> </span>
+                         data-id = <%= postId %>> <%= data[i].likes %> </span>
                     
                 </span> 
                 <% } %>  

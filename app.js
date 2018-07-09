@@ -332,7 +332,7 @@ function loggedIn(req, res, next) {
 }
 
 app.get('/signup', function (req, res, next) {
-    res.sendFile( __dirname + '/signup.html');
+    res.render('signup');
 });
 
 //without Passport
@@ -729,11 +729,12 @@ app.get('/commentPost/:id', loggedIn, function(req, res) {
   var commentField = req.query.comment;
   var id = req.params.id;
   var o_id = ObjectId(id);
-  
+  var date = new Date();
   db.collection("posts").update({_id: o_id}, {$push: {
       comments: {
         "username" : commentUsername,
-        "comment" : commentField
+        "comment" : commentField,
+        "createdAt": date
       }
     }
   }, function(err, res) {
@@ -786,6 +787,15 @@ app.post('/unfollow', loggedIn, function(req, res, next) {
     }
   }});
   res.redirect('/viewProfile/'+req.body.target);
+});
+
+app.get('/explore', loggedIn, function(req,res,next) {
+  sess = req.session;
+  sess.username = req.user.username;
+  Post.find({username: { $ne: sess.username} }, function(err,posts) {
+    var data = posts;
+    res.render('feed', {data: posts, username: sess.username});
+  });
 });
 
 

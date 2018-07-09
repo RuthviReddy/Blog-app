@@ -62,8 +62,15 @@ Logout</a> </p>
 
         <h1 style = "font-size: 200%; text-align: center;">Hi <%= username %>! Welcome to your feed.</h1>
 
-        <p style="font-size: 90%;"><a href="/home">Publish a post!</a> </p>
-        <p style="font-size: 100%;">&ensp;<a href="/yourProfile">Your profile!</a> </p>
+        <div class="dropdown" style="float: left;">
+            <span><i class="fa fa-user" aria-hidden="true">&ensp;Menu</i></span>
+            <div class="dropdown-content">
+                <p style="font-size: 90%;"><a href="/home">Publish a post!</a> </p>
+                <p style="font-size: 90%;"><a href="/yourProfile">Your profile!</a> </p>
+                <p style="font-size: 90%;"><a href="/explore">Explore</a> </p>
+            </div>
+        </div>
+        
 
         <div class="dropdown" style="float: right;">
   			<span>Sort <i class="fa fa-sort" aria-hidden="true"></i>&ensp; &ensp;&ensp; &ensp;&ensp; &ensp;</span>

@@ -113,6 +113,7 @@
             <article style= "text-align: center;" id="comments" name="comments">
             	<span style="font-size: 90%">"<%= commentsArray[i].comment %>" </span>
             	<span style="font-size: 70%"> By <%= commentsArray[i].username %> </span>
+            	<span style="font-size: 70%"> At <%=moment(commentsArray[i].createdAt).format('DD-MM-YYYY HH:MM')%></span>
 
             </article><br>
 

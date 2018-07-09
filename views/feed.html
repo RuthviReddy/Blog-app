@@ -89,6 +89,8 @@ Logout</a> </p>
             <% var viewProfile = '/viewProfile/'+postAuthor %>
             <% var createdAt = moment(posts[i].createdAt).format('DD-MM-YYYY HH:MM') %>
             <% var updatedAt = moment(posts[i].updatedAt).format('DD-MM-YYYY HH:MM') %>
+            <% var commentsLength = (posts[i].comments).length %>
+            <% var viewComments = '/viewComments/'+postId %>
             
             <article style= "text-align: center;">
             	<p style = "font-size: 170%;"><%= posts[i].title %> </p>
@@ -120,7 +122,10 @@ Logout</a> </p>
                          data-id = <%= postId %>> <%= posts[i].likes %> </span>
                     
                 </span> 
-                <% } %>             
+                <% } %>  
+                <p style="font-size: 90%;">
+                    <a href= <%= viewComments %> >Read comments (<%= commentsLength %>)</a>
+                </p>           
 
                 <p>-----------------------</p>
             </article>

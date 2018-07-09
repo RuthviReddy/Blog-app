@@ -4,8 +4,6 @@ var app = express();
 
 var port=1111;
 
-var stream = require('getstream-node');
-
 var mongoose = require('mongoose');
 
 var bodyParser = require('body-parser');
@@ -254,8 +252,8 @@ db.once('open', function(){
 
 //defining the UserSchema
 var UserSchema = new mongoose.Schema({
-	email: String,
-	username: String,
+	email: {type: String, unique: true, required: true},
+	username: {type: String, unique: true, required: true},
 	passwordHash: String,
   image: String,
   provider: String,
@@ -271,8 +269,6 @@ var UserSchema = new mongoose.Schema({
   facebookTokenSecret: String,
   googleToken: String,
   googleTokenSecret: String
-  //blogposts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
-
 });
 
 UserSchema.plugin(uniqueValidator);
@@ -299,13 +295,26 @@ var postSchema = new mongoose.Schema({
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
 
-postSchema.plugin(stream.mongoose.activity);
-stream.mongoose.setupMongoose(mongoose);
+var followSchema = new mongoose.Schema(
+  {
+    user: String,
+    target: {
+      type:Array, 
+      "default": [] 
+    }
+  });
 
-postSchema.methods.activityActorProp = function() {
-  return 'username';
-}
+var Follow = mongoose.model('Follow', followSchema);
 
+var timelineSchema = new mongoose.Schema({
+  user: String,
+  posts: {
+    type: Array,
+    "default": []
+  }
+});
+
+var Timeline = mongoose.model('Timeline', timelineSchema);
 
 //ROUTES
 var sess;
@@ -354,23 +363,49 @@ app.post('/signin', passport.authenticate("local", {
 );
 
 //register with passport
-app.post('/signup', (req, res, next) => {
-  console.log(req.body);
-  var { email, username, password } = req.body;
-  
-  User.create({email, username, password })
-    .then(user => {
-      req.login(user, err => {
-        if(err) next(err);
-        else res.redirect('/');
+app.post('/signup', function(req, res, err){
+  //console.log(req.body);
+  var user = new User();
+  user.username = req.body.username;
+  user.email = req.body.email;
+  user.password = req.body.password;
+
+  user.save(function(err, user) {
+    if(err) {
+    console.log("Validation error");
+    throw err;
+    req.flash("Sorry");
+    res.redirect('/signup');
+    } else {
+      var data = user.username;
+      var follow = new Follow({
+        user: data
       });
-    })
-    .catch(err => {
-      if(err.name === "Validation error") {
-        req.flash("Sorry");
-        res.redirect('/signup');
-      } else next (err);
-    });
+      follow.save(function(err, result) {
+        if(err) {
+          throw err;
+          console.log(err);
+        }
+      });
+      res.redirect('/');
+    }
+  });
+  
+  //var { email, username, password } = req.body;
+  
+  // User.create({email, username, password })
+  //   .then(user => {
+  //     req.login(user, err => {
+  //       if(err) next(err);
+  //       else res.redirect('/');
+  //     });
+  //   })
+  //   .catch(err => {
+  //     if(err.name === "Validation error") {
+  //       req.flash("Sorry");
+  //       res.redirect('/signup');
+  //     } else next (err);
+  //   });
 });
 
 app.get('/facebook', passport.authenticate('facebook', {scope: ['public_profile', 'email'] }));
@@ -574,17 +609,26 @@ app.get('/editPost/:id', loggedIn, function(req, res) {
   
 });
 
+
 app.get('/viewProfile/:Author', loggedIn, function(req,res) {
-  //var id = req.params.;
-  //var o_id = ObjectId(id);
   var name = req.params.Author;
-  
+  var counter = 0;
   db.collection('posts').find({username : name}).toArray((err, result) => {
     if(err) return console.log(err);
+    
+    Follow.findOne({user: sess.username, "target.targetName" : name}, function(err, followObj) {
+      if(followObj == null ) {
+        res.render('profile', {posts: result, username: name, counter: counter});
+      }
 
-    res.render('profile',{posts:result, username: req.params.Author});
-  })
-})
+      else {
+        counter = 1;
+        res.render('profile', {posts: result, username: name, counter: counter});
+      }
+    });
+  });
+});
+
 
 app.post('/edit',(req, res) => {
   
@@ -622,11 +666,6 @@ app.get('/viewPost/:id', function(req, res) {
         res.render('view', {data:postObj, username: sess.username});
     })
   });
-  // db.collection('posts').find({_id: o_id}).toArray((err, result) => {
-  //   if (err) return console.log(err)
-  //  console.log(img);
-  //  res.render('view',{posts: result, image: img});
-    
 });
 
 
@@ -687,6 +726,41 @@ app.get('/commentPost/:id', loggedIn, function(req, res) {
 app.get('/account', loggedIn, function(req, res) {
   res.render('account');
 });
+
+app.get('/viewComments/:id', loggedIn, function(req, res) {
+  console.log("In the view route");
+  sess = req.session;
+  sess.username = req.user.username;
+  var id = req.params.id;
+  var o_id = ObjectId(id);
+  Post.find({_id: o_id}, function(err, posts) {
+    var postObj = {};
+        postObj.posts = posts;
+    res.render('view', {data: postObj, username: sess.username});
+  });
+});
+
+
+app.post('/follow', loggedIn, function(req, res, next) {
+  console.log(req.user.username + " wants to follow "+ req.body.target);
+  db.collection('follows').update({user: req.user.username}, {$push: {
+    target: {
+      "targetName": req.body.target
+    }
+  }}); 
+  res.redirect('/viewProfile/'+req.body.target); 
+});
+
+
+app.post('/unfollow', loggedIn, function(req, res, next) {
+  db.collection('follows').update({user: req.user.username}, {$pull: {
+    target: {
+      "targetName": req.body.target
+    }
+  }});
+  res.redirect('/viewProfile/'+req.body.target);
+});
+
 
 app.listen(port, '0.0.0.0', function() {
  console.log('Server running at port ' + port);

@@ -34,6 +34,19 @@ Logout</a> </p>
 
         <h1 style = "font-size: 200%; text-align: center;">Posts by <%= username%></h1>
 
+        
+        <% if(counter == 0) { %>
+        <form method="post" action='/follow'>
+            <input type="submit" name="Follow" value="Follow">
+            <input type="hidden" name="target" value= <%= username %> >
+        </form>
+        <% } else if(counter == 1) { %>
+        <form method="post" action='/unfollow'>
+            <input type="submit" name="Unfollow" value="Unfollow" style="color: blue;">
+            <input type="hidden" name="target" value= <%= username %> >
+        </form>
+        <% } %>
+
         <p style="font-size: 90%;"><a href="/home">Publish a post!</a> </p>
         <p style="font-size: 90%;"><a href="/feed">Visit your feed!</a> </p>
         <p style="font-size: 100%;">&ensp;<a href="/yourProfile">Your profile!</a> </p>

@@ -295,20 +295,20 @@ var postSchema = new mongoose.Schema({
 postSchema.plugin(timestamps);
 var Post = mongoose.model('Post', postSchema);
 
-var followSchema = new mongoose.Schema(
+var followerSchema = new mongoose.Schema(
   {
     user: String,
-    target: {
+    followers: {
       type:Array, 
       "default": [] 
     }
   });
 
-var Follow = mongoose.model('Follow', followSchema);
+var Follower = mongoose.model('Follower', followerSchema);
 
 var timelineSchema = new mongoose.Schema({
   user: String,
-  posts: {
+  postsFeed: {
     type: Array,
     "default": []
   }
@@ -378,34 +378,29 @@ app.post('/signup', function(req, res, err){
     res.redirect('/signup');
     } else {
       var data = user.username;
-      var follow = new Follow({
+      var follower = new Follower({
         user: data
       });
-      follow.save(function(err, result) {
+      follower.save(function(err, result) {
         if(err) {
           throw err;
           console.log(err);
         }
       });
+
+      var timeline = new Timeline({
+        user: data
+      });
+      timeline.save(function(err, result) {
+        if(err) {
+          throw err;
+          console.log(err);
+        }
+      });
+
       res.redirect('/');
     }
   });
-  
-  //var { email, username, password } = req.body;
-  
-  // User.create({email, username, password })
-  //   .then(user => {
-  //     req.login(user, err => {
-  //       if(err) next(err);
-  //       else res.redirect('/');
-  //     });
-  //   })
-  //   .catch(err => {
-  //     if(err.name === "Validation error") {
-  //       req.flash("Sorry");
-  //       res.redirect('/signup');
-  //     } else next (err);
-  //   });
 });
 
 app.get('/facebook', passport.authenticate('facebook', {scope: ['public_profile', 'email'] }));
@@ -451,8 +446,7 @@ app.get('/google/callback', passport.authenticate('google', {failureRedirect: '/
   
 });*/
 
-app.get('/feed', loggedIn, (req, res) => {
-  //console.log("req.user.username id " + req.params);
+app.get('/feed', loggedIn, function(req, res){
     sess = req.session;
     sess.username = req.user.username;
     Post.find({username: { $ne: sess.username}}).sort({createdAt : 'descending'}).exec(function(err, posts) {
@@ -461,16 +455,15 @@ app.get('/feed', loggedIn, (req, res) => {
 });
 
 //ejs route
-app.get('/home', loggedIn, (req, res) => {
+app.get('/home', loggedIn, function(req, res){
       
       sess = req.session;
       sess.username = req.user.username;
-      //console.log("The session username is" + sess.username);
       res.render('home', {username: sess.username});
       
 });
 
-app.get('/yourProfile',loggedIn ,(req, res) => {
+app.get('/yourProfile',loggedIn ,function(req, res){
   
   var img;
   User.findOne({username: sess.username}, function(err, user) {
@@ -478,7 +471,7 @@ app.get('/yourProfile',loggedIn ,(req, res) => {
       img = user.image;
       //console.log(img);
 
-      Post.find({username: sess.username}, (err,posts) => {
+      Post.find({username: sess.username}, function(err,posts){
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
@@ -487,15 +480,6 @@ app.get('/yourProfile',loggedIn ,(req, res) => {
         res.render('yourProfile', {data: postObj})
       });
   });
-  //console.log(img);
-
-  // Post.find({username: sess.username}, (err,posts) => {
-  //   var postObj = {};
-  //   postObj.image = img;
-  //   postObj.posts = posts;
-  //   console.log(postObj.image);
-  //   res.render('yourProfile', {data: postObj})
-  // });
 });
 
 app.get('/new', loggedIn, function(req, res) {
@@ -554,18 +538,17 @@ app.get('/logout', function (req, res, next) {
 //ejs route
 var text;
 var counter = 0;
-app.post('/publishPost', loggedIn ,(req, res) => {
+app.post('/publishPost', loggedIn , function(req, res){
       
-      if(req.body.tweet == 'on')
-      {
-          counter = 1;
-      }
-      var postData = {
+  if(req.body.tweet == 'on')
+    {
+      counter = 1;
+    }
+    var postData = {
       username: sess.username,
       title: req.body.title,
       blogpost: req.body.editor_content,
-      //likes: 0
-      }
+    }
 
     Post.create(postData, function(err, post) {
       if(err) {
@@ -581,7 +564,30 @@ app.post('/publishPost', loggedIn ,(req, res) => {
               throw err;
             }
           });
-      }
+        }
+
+        Follower.findOne({user: sess.username}, function(err, followObj) {
+          if(err) {
+            throw err;
+            console.log(err);
+          } else if(followObj != null){
+
+            var n = (followObj.followers).length;
+            console.log("The number of followers are "+ n);
+            var i;
+
+            for(i=0; i<n;i++)
+            {
+              var q = followObj.followers[i];
+              db.collection('timelines').update({user: q.followerName}, {$push: {
+                postsFeed : {
+                  "id": post._id
+                }
+              }});
+            }
+          }
+        });
+        
         return res.redirect('/yourProfile');
       }    
     });
@@ -616,7 +622,7 @@ app.get('/viewProfile/:Author', loggedIn, function(req,res) {
   db.collection('posts').find({username : name}).toArray((err, result) => {
     if(err) return console.log(err);
     
-    Follow.findOne({user: sess.username, "target.targetName" : name}, function(err, followObj) {
+    Follower.findOne({user: name, "followers.followerName" : sess.username}, function(err, followObj) {
       if(followObj == null ) {
         res.render('profile', {posts: result, username: name, counter: counter});
       }
@@ -743,9 +749,9 @@ app.get('/viewComments/:id', loggedIn, function(req, res) {
 
 app.post('/follow', loggedIn, function(req, res, next) {
   console.log(req.user.username + " wants to follow "+ req.body.target);
-  db.collection('follows').update({user: req.user.username}, {$push: {
-    target: {
-      "targetName": req.body.target
+  db.collection('followers').update({user: req.body.target}, {$push: {
+    followers: {
+      "followerName": req.user.username
     }
   }}); 
   res.redirect('/viewProfile/'+req.body.target); 
@@ -753,9 +759,10 @@ app.post('/follow', loggedIn, function(req, res, next) {
 
 
 app.post('/unfollow', loggedIn, function(req, res, next) {
-  db.collection('follows').update({user: req.user.username}, {$pull: {
-    target: {
-      "targetName": req.body.target
+  console.log(req.user.username + " wants to unfollow "+ req.body.target);
+  db.collection('followers').update({user: req.body.target}, {$pull: {
+    followers: {
+      "followerName": req.user.username
     }
   }});
   res.redirect('/viewProfile/'+req.body.target);

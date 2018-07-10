@@ -318,7 +318,7 @@ var Timeline = mongoose.model('Timeline', timelineSchema);
 
 //ROUTES
 var sess;
-app.get('/', (req, res) => {
+app.get('/', function(req, res) {
   
    res.render('signin');
 });
@@ -627,7 +627,7 @@ app.get('/deletePost/:id', loggedIn, function(req,res) {
 app.get('/editPost/:id', loggedIn, function(req, res) {
   var id = req.params.id;
   var o_id = ObjectId(id);
-  db.collection('posts').find({_id: o_id}).toArray((err, result) => {
+  db.collection('posts').find({_id: o_id}).toArray(function(err, result) {
     if (err) return console.log(err)
    res.render('edit',{posts: result});
     
@@ -639,7 +639,7 @@ app.get('/editPost/:id', loggedIn, function(req, res) {
 app.get('/viewProfile/:Author', loggedIn, function(req,res) {
   var name = req.params.Author;
   var counter = 0;
-  db.collection('posts').find({username : name}).toArray((err, result) => {
+  db.collection('posts').find({username : name}).toArray(function(err, result) {
     if(err) return console.log(err);
     
     Follower.findOne({user: name, "followers.followerName" : sess.username}, function(err, followObj) {
@@ -656,7 +656,7 @@ app.get('/viewProfile/:Author', loggedIn, function(req,res) {
 });
 
 
-app.post('/edit',(req, res) => {
+app.post('/edit',function(req, res) {
   
  db.collection('posts').update ({ _id: ObjectId(req.body._id) }, {$set: {
     title: req.body.title,
@@ -667,7 +667,7 @@ app.post('/edit',(req, res) => {
       console.log(err);
     } else {
      console.log("Post Updated successfully");
-     Post.find({username: sess.username}, (err,posts) => {
+     Post.find({username: sess.username}, function(err,posts) {
     res.render('yourProfile', {posts: posts})
   });
  }
@@ -710,16 +710,9 @@ app.post('/like', function(req, res) {
       if(err) {
         console.log(err);
       } else {
-        //console.log(result);
         console.log("Like updated");
       }
  });
-  // Post.find({_id: o_id}, function(err, posts){
-  //   //console.log("Inside Posts.find" + posts);
-  //   posts.likes = likesCount;
-  //   console.log(posts);
-
-  //});
 });
 
 app.get('/commentPost/:id', loggedIn, function(req, res) {
@@ -755,7 +748,6 @@ app.get('/account', loggedIn, function(req, res) {
 });
 
 app.get('/viewComments/:id', loggedIn, function(req, res) {
-  console.log("In the view route");
   sess = req.session;
   sess.username = req.user.username;
   var id = req.params.id;
@@ -763,7 +755,7 @@ app.get('/viewComments/:id', loggedIn, function(req, res) {
   Post.find({_id: o_id}, function(err, posts) {
     var postObj = {};
         postObj.posts = posts;
-    res.render('view', {data: postObj, username: sess.username});
+    res.render('viewComments', {data: postObj, username: sess.username});
   });
 });
 

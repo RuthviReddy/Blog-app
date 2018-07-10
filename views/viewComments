@@ -1,0 +1,139 @@
+<html>
+	<head>
+		<meta charset = "UTF-8">
+		<meta name = "description" content = "A blog post">
+		<meta name="keywords" content="blog, post, user">
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		
+		<title id="title" name="title"><%= data.posts[0].title %></title>
+
+		<script>
+            $(document).ready(function(){
+
+                $('.likeButton').click(function(event){
+
+                    console.log($(event.target));
+                    var postId = $(event.target).attr('data-id');
+                    var color = $(event.target).attr('style');
+                    console.log("PostID:" + postId);
+                    var likes = $(event.target).attr('data-count');
+                    likes++;
+                    $('.likesCount[data-id="'+postId+'"]').html(likes);
+                    var data = {postId: postId, likesCount: likes};
+                    $.post('/like', data);
+                    $('.likeButton[data-id="'+postId+'"]').css('color','red');
+                    
+                });
+
+            });
+
+            
+            </script>
+
+            <script type="text/javascript">
+            	$(document).ready(function(){
+	            	$.fn.scrollView = function () {
+	  					return this.each(function () {
+	    					$('html, body').animate({
+	      						scrollTop: $(this).offset().top
+	    					}, 1000);
+	  					});
+					}
+					$('#comments').scrollView();
+				});
+            </script>
+
+	</head>
+
+	<body style="background-color: #F9EEFF; font-family: verdana; text-align: center;">
+
+		<% var postId = data.posts[0]._id %>
+		<% var postAuthor = data.posts[0].username %>
+		<% var viewProfile = '/viewProfile/'+postId %>
+		<% var viewProfile = '/viewProfile/'+postAuthor %>
+		<% var url = "http://127.0.0.1:1111/viewPost/" + postId %>
+		<% var commentPost = '/commentPost/'+postId %>
+		<% var commentsArray = data.posts[0].comments; %>
+		<% var numberOfComments = (data.posts[0].comments).length; %>
+		
+
+		<p style="float:right;"><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true" style = "color: black;"></i>Logout</a> </p> 
+
+		<p style="font-size: 90%; text-align:left;"><a href="/feed">Visit your feed!</a> </p><br/>
+		<p style="text-align: left;"><a href="/yourProfile">Your posts!</a> </p>
+
+		<% var createdAt = moment(data.posts[0].createdAt).format('DD-MM-YYYY HH:MM') %>
+        <% var updatedAt = moment(data.posts[0].updatedAt).format('DD-MM-YYYY HH:MM') %>
+
+		<h1 id="heading" name="heading" style="text-align: center; font-size: 200%;"><%= data.posts[0].title %></h1>
+		<p style = "font-size: 90%;"> Author <a href = <%= viewProfile %>><%= data.posts[0].username %> </a>
+			<span> 
+	            <img style="width: 50px;height: 20px;"  src = <%= data.image %> > 
+	         </span>
+	    </p>
+		<p style = "font-size: 90%; text-align: center;"> Created on <%= createdAt %></p>
+        
+		
+		<br/> <br/> <br/><br/>
+		 <%- data.posts[0].blogpost %>
+		
+		<br/><br/>
+
+		<a href="https://twitter.com/share" 
+		class="twitter-share-button" 
+		data-show-count="false"
+		data-text="Hey! Check out this blog post!"
+		data-url = <%= url %> >Tweet</a>
+		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8">
+		</script>
+
+		
+	<% if( (data.posts[0].username) != username ) { %>
+		<% var counter = (data.posts[0].likedBy).indexOf(username);
+                if(counter == -1) {  %>
+		<span class = "stackIcons"> 
+                    
+            <i class="fa fa-heart-o likeButton" style="" aria-hidden="true" data-id=<%= postId %> data-count= <%= data.posts[0].likes %> ></i>
+
+            <span class="likesCount"
+                         data-id = <%= postId %>> <%= data.posts[0].likes %> </span>
+                   
+         </span> 
+         <% } else { %>
+         <span class = "stackIcons"> 
+                    
+            <i class="fa fa-heart-o likeButton" style="color: red;" aria-hidden="true" data-id=<%= postId %> data-count= <%= data.posts[0].likes %> ></i>
+
+            <span class="likesCount"
+                         data-id = <%= postId %>> <%= data.posts[0].likes %> </span>
+                    
+         </span> 
+         <% } %>
+    <% } %>
+
+
+
+            <form action= <%= commentPost %> >
+            	<p style="text-align: center;">Leave a comment:  <input name="comment" id="comment" type="text" class="comment" required="true"/> </p>
+          
+            	<input type="submit" value="Submit">
+            </form>
+            <br><br>
+            <% for(let i = 0; i < numberOfComments; i++) { %>
+
+            <article style= "text-align: center;" id="comments" name="comments">
+            	<span style="font-size: 90%">"<%= commentsArray[i].comment %>" </span>
+            	<span style="font-size: 70%"> By <%= commentsArray[i].username %> </span>
+            	<span style="font-size: 70%"> At <%=moment(commentsArray[i].createdAt).format('DD-MM-YYYY HH:MM')%></span>
+
+            </article><br>
+
+            <% } %>
+            <p> <a href = <%= viewProfile %> View more from this author! </a></p>
+            <input type="hidden" name="_id" value="<%= data.posts[0]._id %>">
+
+			<br/><br/><br/>
+	</body>
+</html>

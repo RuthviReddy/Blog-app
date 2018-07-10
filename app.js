@@ -637,19 +637,30 @@ app.get('/editPost/:id', loggedIn, function(req, res) {
 
 
 app.get('/viewProfile/:Author', loggedIn, function(req,res) {
+  if(req.params.Author != 'textversion.js')
   var name = req.params.Author;
+
+  //console.log(req.params.Author);
   var counter = 0;
   db.collection('posts').find({username : name}).toArray(function(err, result) {
     if(err) return console.log(err);
+
+    var f=0;
+    Follower.findOne({user: name}, function(err, obj) {
+      //console.log("obj is " + obj);
+      if(obj != null)
+      f = obj.followers.length;
+    });
     
     Follower.findOne({user: name, "followers.followerName" : sess.username}, function(err, followObj) {
       if(followObj == null ) {
-        res.render('profile', {posts: result, username: name, counter: counter});
+        res.render('profile', {posts: result, username: name, counter: counter, f:f});
       }
 
       else {
+        //var f = followObj.followers.length;
         counter = 1;
-        res.render('profile', {posts: result, username: name, counter: counter});
+        res.render('profile', {posts: result, username: name, counter: counter, f:f});
       }
     });
   });
@@ -786,7 +797,7 @@ app.get('/explore', loggedIn, function(req,res,next) {
   sess.username = req.user.username;
   Post.find({username: { $ne: sess.username} }, function(err,posts) {
     var data = posts;
-    res.render('feed', {data: posts, username: sess.username});
+    res.render('explore', {data: posts, username: sess.username});
   });
 });
 

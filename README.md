@@ -8,4 +8,7 @@ Used/Worked on:
 4. Node js
 5. Express js
 6. MongoDB
-7. Passport js
+7. Mongoose
+8. Passport js and its strategies
+9. bcrypt
+10. froala editor 

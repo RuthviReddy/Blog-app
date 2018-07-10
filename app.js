@@ -26,7 +26,6 @@ app.use(bodyParser.urlencoded({
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
-
 var bcrypt = require('bcrypt');
 var salt = 10;
 
@@ -39,7 +38,6 @@ app.use(session ({key: 'user_sid',
                   cookie: {
                     secure: 'auto'
                   }
-                  //cookie: { maxAge: 1209600000 }
                 }));
 
 var ObjectId = require('mongodb').ObjectID;
@@ -79,7 +77,6 @@ var local = new LocalStrategy(function(username, password, done) {
 });
 
 passport.use("local",local);
-
 
 //login through Facebook
 passport.use(new FacebookStrategy({
@@ -236,7 +233,6 @@ passport.deserializeUser(function(id, done) {
   });
 });
 
-
 module.exports = passport;
 
 
@@ -316,6 +312,7 @@ var timelineSchema = new mongoose.Schema({
 
 var Timeline = mongoose.model('Timeline', timelineSchema);
 
+
 //ROUTES
 var sess;
 app.get('/', function(req, res) {
@@ -364,7 +361,6 @@ app.post('/signin', passport.authenticate("local", {
 
 //register with passport
 app.post('/signup', function(req, res, err){
-  //console.log(req.body);
   var user = new User();
   user.username = req.body.username;
   user.email = req.body.email;
@@ -451,7 +447,6 @@ app.get('/feed', loggedIn, function(req, res){
     sess.username = req.user.username;
 
     Timeline.findOne({user: sess.username}, function(err, timeline) {
-      //console.log(timeline);
       var l = (timeline.postsFeed).length;
       var limit = 10;
       if(l < 10) {
@@ -486,37 +481,54 @@ app.get('/home', loggedIn, function(req, res){
 app.get('/yourProfile',loggedIn ,function(req, res){
   
   var img;
+  var f = 0;
+  Follower.findOne({user: sess.username}, function(err, obj) {
+    if(obj != null)
+    {
+      f = obj.followers.length;
+    }
+  });
   User.findOne({username: sess.username}, function(err, user) {
-      //console.log(user);
       img = user.image;
-      //console.log(img);
 
       Post.find({username: sess.username}, function(err,posts){
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
         postObj.username = sess.username;
-        //console.log(postObj.image);
-        res.render('yourProfile', {data: postObj})
+        
+        res.render('yourProfile', {data: postObj, f:f})
       });
   });
 });
 
 app.get('/new', loggedIn, function(req, res) {
+  var f = 0;
+  Follower.findOne({user: sess.username}, function(err, obj) {
+    if(obj != null)
+    {
+      f = obj.followers.length;
+    }
+  });
   Post.find({username: sess.username}).sort({createdAt : 'descending'}).exec(function(err, posts) {
     var postObj = {};
-        //postObj.image = img;
         postObj.posts = posts;
-    res.render('yourProfile', {data: postObj})
+    res.render('yourProfile', {data: postObj, f:f})
   });
 });
 
 app.get('/old', loggedIn, function(req, res) {
+  var f = 0;
+  Follower.findOne({user: sess.username}, function(err, obj) {
+    if(obj != null)
+    {
+      f = obj.followers.length;
+    }
+  });
   Post.find({username: sess.username}).sort({createdAt : 'ascending'}).exec(function(err, posts) {
     var postObj = {};
-        //postObj.image = img;
         postObj.posts = posts;
-    res.render('yourProfile', {data: postObj})
+    res.render('yourProfile', {data: postObj, f:f})
   });
 });
 
@@ -640,27 +652,24 @@ app.get('/viewProfile/:Author', loggedIn, function(req,res) {
   if(req.params.Author != 'textversion.js')
   var name = req.params.Author;
 
-  //console.log(req.params.Author);
   var counter = 0;
   db.collection('posts').find({username : name}).toArray(function(err, result) {
     if(err) return console.log(err);
 
     var f=0;
     Follower.findOne({user: name}, function(err, obj) {
-      //console.log("obj is " + obj);
       if(obj != null)
       f = obj.followers.length;
     });
     
     Follower.findOne({user: name, "followers.followerName" : sess.username}, function(err, followObj) {
       if(followObj == null ) {
-        res.render('profile', {posts: result, username: name, counter: counter, f:f});
+        res.render('profile', {posts: result, username: name, counter: counter, f:f, name: sess.username});
       }
 
       else {
-        //var f = followObj.followers.length;
         counter = 1;
-        res.render('profile', {posts: result, username: name, counter: counter, f:f});
+        res.render('profile', {posts: result, username: name, counter: counter, f:f, name: sess.username});
       }
     });
   });
@@ -678,8 +687,15 @@ app.post('/edit',function(req, res) {
       console.log(err);
     } else {
      console.log("Post Updated successfully");
+     var f = 0;
+  Follower.findOne({user: sess.username}, function(err, obj) {
+    if(obj != null)
+    {
+      f = obj.followers.length;
+    }
+  });
      Post.find({username: sess.username}, function(err,posts) {
-    res.render('yourProfile', {posts: posts})
+    res.render('yourProfile', {posts: posts, f:f})
   });
  }
 })});
@@ -688,7 +704,6 @@ app.get('/viewPost/:id', function(req, res) {
   sess = req.session;
   sess.username = req.user.username;
   var id = req.params.id;
-  //console.log(id);
   var o_id = ObjectId(id);
   var img;
   
@@ -699,7 +714,6 @@ app.get('/viewPost/:id', function(req, res) {
         var postObj = {};
         postObj.image = img;
         postObj.posts = posts;
-        //console.log("postObj.image is "+postObj.image);
         res.render('view', {data:postObj, username: sess.username});
     })
   });
